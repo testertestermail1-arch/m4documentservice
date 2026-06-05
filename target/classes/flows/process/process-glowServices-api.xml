@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<sub-flow name="process-glowServices-getFactoryWarranty-Flow" doc:id="e0e422e9-7a85-44e2-90bb-8d18fdffabd9" >
+		<ee:transform doc:name="isGetFactory" doc:id="dae72954-35d7-4469-afae-00a9212e76d4" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="vehicleCode" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.vehicleCode))(vars.vehicleCode replace "'" with "\'") else null]]></ee:set-variable>
+				<ee:set-variable variableName="isGetFactory" ><![CDATA[%dw 2.0
+output application/java
+---
+if((not isEmpty(vars.vehicleCode)) and (not isEmpty(vars.vehicleType)))((vars.vehicleCode contains ("GENERIC")) or  (vars.vehicleCode contains ("DEFAULT")) or ((vars.vehicleType != "RT") and (vars.vehicleType != "RP") and (vars.vehicleType != "RS") and (vars.vehicleType != "RH") and (vars.vehicleType != "RM"))) else true]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Validate isGetFactory" doc:id="f95bd726-c9c3-4dbc-980e-277521b6ea4e" >
+			<when expression="#[vars.isGetFactory]">
+				<logger level="INFO" doc:name="Skip Factory Warranty Lookup Logger" doc:id="bc631efe-5e42-4653-b187-fd8d96a6aa4d" message="MessageId: #[correlationId] || Skip Factory Warranty Lookup as factory warranty check false"/>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Call system-glowServices-getFactoryWarranty-Flow" doc:id="3a154e86-1878-4402-bd9f-b6f4a4ada516" name="system-glowServices-getFactoryWarranty-Flow"/>
+				<set-variable value="#[%dw 2.0&#10;output application/json&#10;var getFactoryWarranty = vars.getFactoryWarranty&#10;fun getTermMonths(types) = ((getFactoryWarranty map if ($.Warranty_Type__r.Type__c == types) $.Term_Months__c else '') reduce ($$ ++ $))&#10;---&#10;{&#10;	bscTermMonth: getTermMonths(&quot;BSC&quot;) default &quot;&quot;,&#10;	ptTermMonth: getTermMonths(&quot;P/T&quot;) default &quot;&quot;&#10;}]" doc:name="Set factoryWarrantyDetails Variable" doc:id="5d8b20aa-6f69-48db-af51-fd1fdba9d822" variableName="factoryWarrantyDetails"/>
+				<ee:transform doc:name="Setting Term Month" doc:id="3a13a4d8-351c-4445-adff-70ff634d1e0e" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="bscTermMonth" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.factoryWarrantyDetails)) vars.factoryWarrantyDetails.bscTermMonth else ""]]></ee:set-variable>
+						<ee:set-variable variableName="ptTermMonth" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.factoryWarrantyDetails)) vars.factoryWarrantyDetails.ptTermMonth else ""]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

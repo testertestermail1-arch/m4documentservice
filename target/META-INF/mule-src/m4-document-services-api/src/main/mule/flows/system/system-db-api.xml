@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<sub-flow name="system-logger-db-Form-api-flow" doc:id="9a017944-b704-4cc0-8329-582f37365f3b" >
+		<logger level="INFO" doc:name="Before logger DB call" doc:id="9b529cb8-eea1-449e-992a-71cf00d5bab3" message="MessageId: #[correlationId] || Before logger DB call "/>
+		<db:stored-procedure doc:name="Calling SP_INSERT_EFT_FormsLogDetails Store Procedure" doc:id="3f1620e9-c32b-4cc5-9a3f-3f526ac10843" config-ref="Logger_Database_Config">
+			<db:sql ><![CDATA[{CALL ${logger.api.forms.generic.log.sp} (:@IN_RECORD_KEY, :@IN_MESSAGE_ID, :@IN_REQUEST_DATE, :@IN_REQUEST_TIMESTAMP, :@IN_RESPONSE_STATUS, :@IN_API_REQUEST_Part1, :@IN_API_REQUEST_Part2, :@IN_API_RESPONSE, :@IN_REQUEST_SOURCE, :@IN_RESPONSE_TIMESTAMP )}]]></db:sql>
+			<db:input-parameters ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+	"@IN_RECORD_KEY": vars.specialId,
+	"@IN_MESSAGE_ID": vars.specialId,
+	"@IN_REQUEST_DATE": now() as String {format:'yyyy-MM-dd'},
+	"@IN_REQUEST_TIMESTAMP": vars.requestTimeStamp,
+	"@IN_RESPONSE_STATUS": "SUCCESS",
+	"@IN_API_REQUEST_Part1": if(vars.isPayloadTypeJSON) payload[0] else  if(not isEmpty(vars.apiRequest))(write(vars.apiRequest, "application/xml",{
+                "writeDeclaration": false,
+                "indent":false
+    })) else "",
+	"@IN_API_REQUEST_Part2":if(vars.isPayloadTypeJSON) payload[1] else "" ,
+	"@IN_API_RESPONSE":  vars.URL,
+	"@IN_REQUEST_SOURCE": if(not isEmpty(vars.source)) upper(vars.source) else vars.source,
+	"@IN_RESPONSE_TIMESTAMP": now() as String
+}]]]></db:input-parameters>
+		</db:stored-procedure>
+		<logger level="INFO" doc:name="After logger DB call " doc:id="1f9c1730-e7d8-4518-aaf8-4dca75f0a797" message="MessageId: #[correlationId] || After logger DB call "/>
+	</sub-flow>
+</mule>

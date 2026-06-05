@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<env:Header />
+	<env:Body>
+		<m:getForm xmlns:m="http://webservice.forms.twg.com/">
+			<arg0>
+				<urlOnly>false</urlOnly>
+				<quoteId>a0ZJ0000009YClHMAW</quoteId>
+				<callingApp>
+					<serviceSecurity>
+						<token></token>
+						<username></username>
+					</serviceSecurity>
+					<appId>MXSFDC</appId>
+					<persist>false</persist>
+					<sourceSystem>MR</sourceSystem>
+				</callingApp>
+				<dealer>
+					<rdgId>RIL99922</rdgId>
+					<internalId>RIL99922</internalId>
+					<name>UNDERWRITING-TEST(1)</name>
+					<address>
+						<address1>175 WEST JACKSON BLVD</address1>
+						<zip>60604</zip>
+						<city>CHICAGO</city>
+						<state>IL</state>
+						<country>USA</country>
+					</address>
+					<fieldRep>Test TWG Corp Admin</fieldRep>
+					<phone>
+						<type>M</type>
+						<number>999-9999</number>
+						<areaCode>312</areaCode>
+					</phone>
+					<classificationCode>AN</classificationCode>
+				</dealer>
+				<vehicle>
+					<type>C</type>
+					<model>
+						<code>23050</code>
+						<name>Civic</name>
+						<make>
+							<name>Honda</name>
+						</make>
+					</model>
+					<inServiceDate>2016-01-14</inServiceDate>
+					<odometerAtPurchase>12</odometerAtPurchase>
+					<vin>12345678901234567</vin>
+					<vehicleClass>1  </vehicleClass>
+					<year>2014</year>
+					<odometer>12</odometer>
+					<isDiesel>false</isDiesel>
+					<isFourByFour>false</isFourByFour>
+					<isTurbo>false</isTurbo>
+					<isCar>true</isCar>
+					<isTruck>false</isTruck>
+					<isCommercial>false</isCommercial>
+					<isHybrid>false</isHybrid>
+					<hasNavigation>false</hasNavigation>
+					<isNew>true</isNew>
+					<nug>G</nug>
+				</vehicle>
+				<contractNumber>LM2006CA</contractNumber>
+				<productDetails>
+					<id>AN60DLW</id>
+					<type>LW</type>
+					<productClass>60 Day LW|71</productClass>
+					<form>
+						<type>P</type>
+						<number>AN60DLW0216</number>
+						<isCombo>false</isCombo>
+					</form>
+					<cost>0.0</cost>
+					<salesTax>0.0</salesTax>
+					<deductibleAmount>200</deductibleAmount>
+					<reducingAmount>0</reducingAmount>
+					<ppmIntervalMiles>0</ppmIntervalMiles>
+					<disappearing>true</disappearing>
+					<reducing>false</reducing>
+					<coverageCode>GD</coverageCode>
+					<coverageName>GOLD</coverageName>
+					<termMonths>2</termMonths>
+					<termMiles>99000</termMiles>
+					<systemPin />
+					<coveragePlan>false</coveragePlan>
+					<totalAllowableMilesContract>0.0</totalAllowableMilesContract>
+				</productDetails>
+				<contacts>
+					<type>B</type>
+					<firstName>test LW1</firstName>
+					<lastName>Last LW1</lastName>
+					<email>abc@abc.com</email>
+					<address>
+						<address1>add</address1>
+						<zip>60016</zip>
+						<city>City</city>
+						<state>IL</state>
+						<country>USA</country>
+					</address>
+					<phones>
+						<type>H</type>
+						<number>4567890</number>
+						<areaCode>123</areaCode>
+					</phones>
+				</contacts>
+				<financeDetails>
+					<financingType>C</financingType>
+					<ballonResidualAmount>0.0</ballonResidualAmount>
+					<financedAmount>0.0</financedAmount>
+					<apr>0.0</apr>
+					<paymentAmount>0.0</paymentAmount>
+					<numberOfPayments>0</numberOfPayments>
+					<numberOfAdvPayments>0</numberOfAdvPayments>
+					<numberOfSkipPayments>0</numberOfSkipPayments>
+					<msrp>0.0</msrp>
+					<nada>0.0</nada>
+					<leaseCapAmount>0.0</leaseCapAmount>
+					<period>0</period>
+					<startDate>2016-01-14</startDate>
+					<grossCapCost>0.0</grossCapCost>
+					<monthlyPaymentAmount>0.0</monthlyPaymentAmount>
+				</financeDetails>
+				<fillers>
+					<key>DEALERTYPE</key>
+					<value>REMIT</value>
+				</fillers>
+				<fillers>
+					<key>w</key>
+					<value>w</value>
+				</fillers>
+			</arg0>
+		</m:getForm>
+	</env:Body>
+</env:Envelope>

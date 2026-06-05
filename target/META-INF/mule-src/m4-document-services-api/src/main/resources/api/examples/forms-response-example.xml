@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <ns2:getFormResponse xmlns:ns2="http://webservice.forms.twg.com/">
+            <return>
+                <status>
+                    <error>false</error>
+                </status>
+                <pdfs>
+                    <type>WAR</type>
+                    <url>https://uatna11.springcm.com/atlas/documents/preview.aspx?aid=8152&amp;lduid=98a716f2-2f46-ee11-b85c-48df378aa068</url>
+                    <number>RAMAOVSCNTB1216</number>
+                    <issued>2023-08-29T05:50:33.527Z</issued>
+                    <signatures>
+                        <signature>
+                            <name>RAMAOVSCNTB1216</name>
+                            <type>CoBuyerSignature</type>
+                            <x>318.0</x>
+                            <y>170.0</y>
+                            <xbound>588.0</xbound>
+                            <ybound>154.0</ybound>
+                            <pageNumber>1,2,3</pageNumber>
+                        </signature>
+                        <signature>
+                            <name>RAMAOVSCNTB1216</name>
+                            <type>CustomerSignature</type>
+                            <x>25.0</x>
+                            <y>170.0</y>
+                            <xbound>295.0</xbound>
+                            <ybound>154.0</ybound>
+                            <pageNumber>1,2,3</pageNumber>
+                        </signature>
+                    </signatures>
+                </pdfs>
+            </return>
+        </ns2:getFormResponse>
+    </soap:Body>
+</soap:Envelope>

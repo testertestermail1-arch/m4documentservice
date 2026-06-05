@@ -1,0 +1,70 @@
+#%RAML 1.0
+title: Forms Internal Services RAML
+version: v1
+baseUri: http://127.0.0.1:8081/api
+
+securitySchemes:
+  basic:
+    description: |
+      This API supports Basic Authentication.
+    type: Basic Authentication
+    
+/forms:
+  post:
+    securedBy: [basic]
+    description: Service to create contract form from template
+    body:
+      application/json:
+        example: !include examples/form-request-example.json
+      application/xml:
+        example: !include examples/form-request-example.xml
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include examples/forms-response-example.json
+          application/xml:
+            example: !include examples/forms-response-example.xml 
+            
+/qcert-forms:
+  post:
+    securedBy: [basic]
+    description: Service to get the title report template
+    body:
+      application/json:
+        example: !include examples/qcert-request-example.json
+    responses:
+      200:
+        body:
+          application/pdf: 
+          
+/service/forms:
+  post:
+    securedBy: [basic]
+    description: Service to create service contract form from template
+    body:
+      application/json:
+        type: !include datatypes/service-forms-request-datatype.raml
+        example: !include examples/service-forms-request-example.json
+    responses:
+      200:
+        body:
+          application/json: !include examples/service-forms-response-example.json   
+      400:
+        body:
+         application/json:  
+           example: !include examples/Service-Forms-Error-Example.json
+
+/springcm/healthcheck:
+  get:
+    description: Service to check health of springcm 
+    responses:
+      200:
+        body:
+          application/json:                
+          
+
+/invalidateCache:
+  get:
+    securedBy: [basic]
+    description: Service to check valid cache content                                           

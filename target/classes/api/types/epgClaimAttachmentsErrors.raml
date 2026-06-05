@@ -1,0 +1,28 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  correlationId:
+    type: string
+    description: Unique transaction Id
+    required: true
+  status: 
+    type: string
+    description: Processing Status - Error/Rejected
+    required: true
+  errorType:
+    type: string
+    description: Dedicated Error Type value
+    required: true
+  errors:
+    type: array
+    items:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: Dedicated Error Code value
+          required: true
+        errorDescription:
+          type: string
+          description: Error descriptions values.
+          required: true

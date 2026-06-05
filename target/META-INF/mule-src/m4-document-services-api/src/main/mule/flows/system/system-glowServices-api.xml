@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	<sub-flow name="system-salesforce-pga-account-lookup-flow" doc:id="60ad86d2-74ed-4094-8c76-02291dafd8e4" >
+		<logger level="INFO" doc:name="Before Salesforce Account Lookup Logger" doc:id="c4d93ed5-c9ff-4893-8348-3d58d7c04bbc" message="MessageId: #[correlationId] - Before Salesforce account lookup flow"/>
+		<salesforce:query doc:name="Calling Account Object" doc:id="e3f55d09-d338-4fb3-b888-8acbad4351b6" config-ref="salesforceConfig" target="accountLookup">
+			<salesforce:salesforce-query ><![CDATA[${sfdc.account.lookup.query}]]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	accountNumber : vars.accountNumber
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Retriving Pga Flag And ClassificationCode" doc:id="59664a2d-707b-43b8-8c2d-6d613a86eea5">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="pgaFlag"><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.accountLookup)) vars.accountLookup[0].PGA_Opt_In__c else false]]></ee:set-variable>
+				<ee:set-variable variableName="classificationCode"><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.accountLookup)) vars.accountLookup[0].Classification_Code__c else '']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="After Salesforce Account Lookup Logger" doc:id="3fef0056-fb84-40cc-a793-4e613be48fe1" message="MessageId: #[correlationId] - After Salesforce account lookup flow pgaFlag: #[vars.pgaFlag] classificationCode: #[vars.classificationCode]"/>
+	</sub-flow>
+	<sub-flow name="system-glowServices-getFactoryWarranty-Flow" doc:id="17f91897-8fb6-4ee2-905b-859293264499" >
+		<logger level="INFO" doc:name="Before GetFactoryWarranty Lookup Logger" doc:id="22cd2607-ad09-40bd-bf7e-57fbffeba277" message="MessageId: #[correlationId] || Before GetFactoryWarranty Lookup Call"/>
+		<salesforce:query doc:name="Get Factory Warranty Lookup" doc:id="6eb06ace-11aa-4e06-8bfd-ae281886cbac" config-ref="salesforceConfig" target="getFactoryWarranty" targetValue="#[if(not isEmpty(payload)) payload else []]">
+			<salesforce:salesforce-query ><![CDATA[${sfdc.factoryWarranty.lookup.query}]]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	vehicleYear : vars.vehicleYear,
+	vehicleCode : vars.vehicleCode
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<logger level="INFO" doc:name="After GetFactoryWarranty Lookup Logger" doc:id="c715bdb1-6e4a-4137-9755-02eedc7b88dd" message="MessageId: #[correlationId] || After GetFactoryWarranty Lookup Call "/>
+	</sub-flow>
+	<sub-flow name="system-glowServices-getTemplateUrl-Flow" doc:id="6db24831-662b-4576-a37a-4d8c11d40c2e" >
+		<logger level="INFO" doc:name="Before Get Template URL Lookup Logger" doc:id="00fdd68a-2c16-42e4-9a19-d053cfa8315a" message="MessageId: #[correlationId] || Before Get Template URL Lookup Logger"/>
+		<salesforce:query doc:name="Get Template URL Lookup" doc:id="e37204e0-d37c-4fb7-a8af-b021dc3ee85e" config-ref="salesforceConfig" target="templateURLPayload">
+			<salesforce:salesforce-query ><![CDATA[${sfdc.templateUrl.lookup.query}]]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	formNumber : vars.formNumber
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="templateURL Var" doc:id="09f568a7-0f06-4621-baea-2dc4144656e7" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="templateURL" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(payload)) vars.templateURLPayload[0].Template_URL__c else null]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="After Get Template URL Lookup Logger" doc:id="1b60f270-34c2-45d6-a0a6-04b067fd5b60" message="MessageId: #[correlationId] || After Get Template URL Lookup Logger "/>
+	</sub-flow>
+	<sub-flow name="system-glowServices-getSignCordinate-Flow" doc:id="4c03d5d4-ab30-422d-a7de-77562908cd60" >
+		<logger level="INFO" doc:name="Before Signature Lookup Logger" doc:id="4df428cb-5d0a-4b1e-9ea8-53465e35f86b" message='Message Id : #[correlationId] || Before Sign Cordinate Lookup || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+		<ee:transform doc:name="Set formNumber" doc:id="dbaf143d-6d8f-4dd4-bf8d-9beab7f7f6fd" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="formNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+trim(vars.formNumber)]]></ee:set-variable>
+				<ee:set-variable variableName="IsActive" ><![CDATA[%dw 2.0
+output application/java
+---
+true]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<salesforce:query doc:name="Get Sign Cordinate details" doc:id="9be69ca0-bbb0-43d1-9667-a48871efb015" config-ref="salesforceConfig" target="signCordinateDetails">
+			<salesforce:salesforce-query ><![CDATA[${sfdc.signCordinate.lookup.query}]]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	IsActive : vars.IsActive,
+	formNumber : vars.formNumber
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Set signCoordinates" doc:id="5790d57c-ef5b-4125-a3cb-b155278ecef1" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="signCoordinates" ><![CDATA[%dw 2.0
+output application/json
+var signCordinateDetails = vars.signCordinateDetails default[]
+---
+ signature : signCordinateDetails map ({
+		'name': $.Name,
+		'type': $.Signature_Type__c,
+		'x':$.X_Left_Cordinate__c,
+		'y':$.Y_Top_Cordinate__c,
+		'xbound':$.X_Right_Cordinate__c,
+		'ybound':$.Y_Bottom_Cordinate__c,
+		'pageNumber':$.Page_Number_To_Print_On__c 
+	})]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="After Signature Lookup Logger" doc:id="d7902aff-314e-49fd-8d89-ec773c6c62ab" message='Message Id : #[correlationId] || After Sign Cordinate Lookup || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+	</sub-flow>
+	<sub-flow name="system-glowServices-getBuyersGuideTemplate-Flow" doc:id="77f7a0d0-93d9-4457-891b-4df159a9600b" >
+		<logger level="INFO" doc:name="Before Get Buyers Guide Template Logger" doc:id="9dbceabf-9b15-4f0f-8648-5c8e47d57a7f" message='MessageId: #[correlationId] || Before Get Buyers Guide Template Logger || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+		<salesforce:query doc:name="Get Buyers Guide Template Lookup" doc:id="8b855eea-dfca-42b8-bdf7-66ce00501e54" config-ref="salesforceConfig" target="buyersGuideTemplatePayload">
+			<salesforce:salesforce-query ><![CDATA[${sfdc.buyersGuide.template.query}]]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	buyersGuideId : vars.buyersGuideId
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Set buyersGuideTemplate" doc:id="e97f627f-a04b-462c-908f-3c8f823a8bfa" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="buyersGuideTemplate" ><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output application/java
+---
+if(isEmpty(vars.buyersGuideTemplatePayload)) "templateNotfound" 
+	else ((toBase64(vars.buyersGuideTemplatePayload[0].Body as Binary)) as String)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="After Get Buyers Guide Template Logger" doc:id="cf5dcda1-f02b-4838-86a3-fc92abd31499" message='MessageId: #[correlationId] || After Get Buyers Guide Template Logger || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+	</sub-flow>
+</mule>

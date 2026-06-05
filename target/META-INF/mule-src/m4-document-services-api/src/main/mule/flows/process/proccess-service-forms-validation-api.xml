@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:java="http://www.mulesoft.org/schema/mule/java" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd">
+
+	<flow name="process-service-forms-validation-flow" doc:id="ffe91109-f124-4700-987a-507c190971e6" >
+		<logger level="INFO" doc:name="Stage Logger" doc:id="60a8e263-dbe4-4da6-b00a-49f619b1b472" message="#[correlationId] - Before fomate and mandatory validation by java"/>
+		<ee:transform doc:name="JSON to Java" doc:id="f0a55727-6a02-41ef-9959-0a5ee4a270d1" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="serviceFormsInput" ><![CDATA[%dw 2.0
+output application/java
+---
+{(keysOf(payload) map ((item, index) -> 
+(item): payload[item]
+))}]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<java:new constructor="ServiceFormRequestValidation()" doc:name="Service Forms Request Validation Instance" doc:id="f34a5ec0-dd9f-4ee3-8420-7618bdd8b667" class="com.twg.api.service_forms.validation.ServiceFormRequestValidation"  target="serviceFormsInstances"/>
+		<try doc:name="Try" doc:id="35f26e98-f69f-4877-b0e9-59ade785c628" >
+			<java:invoke doc:name="Invoke Service Forms Request Validation" doc:id="0ff669f9-86cb-4ace-b2a6-652f68132656" instance="#[vars.serviceFormsInstances]" class="com.twg.api.service_forms.validation.ServiceFormRequestValidation" method="validate(java.util.LinkedHashMap)" target="javaPayload">
+			<java:args><![CDATA[#[{message: vars.serviceFormsInput}]]]></java:args>
+		</java:invoke>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="java class exception" doc:id="11e1531f-e558-4671-bf3f-403d8722b11c">
+					<ee:transform doc:name="Inside java validation error" doc:id="282f52af-4537-47f7-a058-8b650d8f274c">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": "Failure",
+    "correlationId": correlationId,
+    "errorCode": "FV0001",
+    "errorCategroy": "Format Validation Error",
+    "userMessage": ["Invalid Field  : " ++ (error.exception.cause.cause.message) default ""],
+    "DeveloperMessage": "Java validation Error"
+}]]></ee:set-payload>
+					</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="errorStatusCode" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+						
+</ee:variables>
+				</ee:transform>
+					<set-variable value="#[payload]" doc:name="Set Error Message" doc:id="b0dc5169-dd23-4539-b0d0-85eff33bbab6" variableName="javaErrorMessage" />
+					<raise-error doc:name="Java Validation Failure" doc:id="cff09489-486f-4096-b822-9ac01de67efb" type="CUS_VALIDATION:BAD REQUEST"/>
+			</on-error-propagate>
+			</error-handler>
+		
+		</try>
+		<choice doc:name="Error Check" doc:id="3752d09f-b736-4af3-ac86-0ce98d3e620c">
+			<when expression="#[not isEmpty(vars.javaPayload.allErrors)]">
+				<logger level="INFO" doc:name="Error Occured" doc:id="200c1de4-7efd-4fb4-9ca5-723201458875" message="#[correlationId] - Error Occured in java component"/>
+				<ee:transform doc:name="Error Payload" doc:id="1fb2b70d-5b35-4d56-8054-b8c99130d49e">
+					<ee:message>
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": "Failure",
+    "correlationId": correlationId,
+    "errorCode": "FV0001",
+    "errorCategory": "Format Validation Error",
+    "userMessage": vars.javaPayload.allErrors,
+    "DeveloperMessage": "Java validation Error"
+}]]></ee:set-payload>
+
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="errorStatusCode" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+					</ee:variables>
+				
+</ee:transform>
+				<set-variable value="#[payload]" doc:name="Set Error Message" doc:id="a14c4d63-14d8-4eaa-95a2-5023291322bc" variableName="javaErrorMessage"/>
+				<raise-error doc:name="Java Validation Failure" doc:id="20571775-ab35-4c60-bccc-86add04a9a49" type="CUS_VALIDATION:BAD REQUEST"/>
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="No Java error" doc:id="5ccfdaf5-edf4-4a1c-8fba-ef482210bfb0" message="#[correlationId] - No Java error ||  formate and mandatory validation completed successfully" />
+			</otherwise>
+		</choice>
+		
+	
+
+</flow>
+</mule>
+

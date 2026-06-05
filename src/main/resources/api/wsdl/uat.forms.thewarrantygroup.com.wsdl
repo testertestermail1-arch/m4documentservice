@@ -1,0 +1,283 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions name="FormsWebServiceImplService" targetNamespace="http://webservice.forms.twg.com/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://webservice.forms.twg.com/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="unqualified" targetNamespace="http://webservice.forms.twg.com/" xmlns:tns="http://webservice.forms.twg.com/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:element name="getForm" type="tns:getForm"/>
+<xs:element name="getFormResponse" type="tns:getFormResponse"/>
+<xs:complexType name="getForm">
+<xs:sequence>
+<xs:element minOccurs="0" name="arg0" type="tns:formRequest"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="formRequest">
+<xs:sequence>
+<xs:element default="true" name="urlOnly" type="xs:boolean"/>
+<xs:element name="quoteId" type="xs:string"/>
+<xs:element name="callingApp" type="tns:callingApp"/>
+<xs:element name="dealer" type="tns:dealer"/>
+<xs:element minOccurs="0" name="vehicle" type="tns:vehicle"/>
+<xs:element name="contractNumber" type="xs:string"/>
+<xs:element maxOccurs="unbounded" name="productDetails" type="tns:productDetail"/>
+<xs:element maxOccurs="unbounded" minOccurs="0" name="contacts" type="tns:contact"/>
+<xs:element minOccurs="0" name="financeDetails" type="tns:financeDetails"/>
+<xs:element maxOccurs="unbounded" minOccurs="0" name="fillers" type="tns:keyValuePair"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="callingApp">
+<xs:sequence>
+<xs:element minOccurs="0" name="serviceSecurity" type="tns:serviceSecurity"/>
+<xs:element name="appId" type="xs:string"/>
+<xs:element name="persist" type="xs:boolean"/>
+<xs:element name="sourceSystem" type="xs:string"/>
+<xs:element minOccurs="0" name="businessUnit" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="serviceSecurity">
+<xs:sequence>
+<xs:element minOccurs="0" name="token" type="xs:string"/>
+<xs:element minOccurs="0" name="username" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="dealer">
+<xs:sequence>
+<xs:element name="rdgId" type="xs:string"/>
+<xs:element name="internalId" type="xs:string"/>
+<xs:element name="name" type="xs:string"/>
+<xs:element name="address" type="tns:address"/>
+<xs:element minOccurs="0" name="fieldRep" type="xs:string"/>
+<xs:element minOccurs="0" name="phone" type="tns:phone"/>
+<xs:element minOccurs="0" name="insuranceNumber" type="xs:string"/>
+<xs:element minOccurs="0" name="companyCode" type="xs:string"/>
+<xs:element minOccurs="0" name="classificationCode" type="xs:string"/>
+<xs:element minOccurs="0" name="paymentType" type="xs:string"/>
+<xs:element minOccurs="0" name="rfc" type="xs:string"/>
+<xs:element minOccurs="0" name="seller" type="xs:string"/>
+<xs:element minOccurs="0" name="invoiceNumber" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="address">
+<xs:sequence>
+<xs:element name="address1" type="xs:string"/>
+<xs:element minOccurs="0" name="address2" type="xs:string"/>
+<xs:element name="zip" type="xs:string"/>
+<xs:element name="city" type="xs:string"/>
+<xs:element name="state" type="xs:string"/>
+<xs:element name="country" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="phone">
+<xs:sequence>
+<xs:element name="type" type="xs:string"/>
+<xs:element name="number" type="xs:string"/>
+<xs:element name="areaCode" type="xs:int"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="vehicle">
+<xs:sequence>
+<xs:element name="type" type="xs:string"/>
+<xs:element name="model" type="tns:model"/>
+<xs:element minOccurs="0" name="inServiceDate" type="xs:string"/>
+<xs:element name="odometerAtPurchase" type="xs:int"/>
+<xs:element name="vin" type="xs:string"/>
+<xs:element name="vehicleClass" type="xs:string"/>
+<xs:element name="year" type="xs:string"/>
+<xs:element minOccurs="0" name="price" type="xs:double"/>
+<xs:element name="odometer" type="xs:int"/>
+<xs:element name="isDiesel" type="xs:boolean"/>
+<xs:element name="isFourByFour" type="xs:boolean"/>
+<xs:element name="isTurbo" type="xs:boolean"/>
+<xs:element name="isCar" type="xs:boolean"/>
+<xs:element name="isTruck" type="xs:boolean"/>
+<xs:element name="isCommercial" type="xs:boolean"/>
+<xs:element name="isHybrid" type="xs:boolean"/>
+<xs:element name="hasNavigation" type="xs:boolean"/>
+<xs:element name="isNew" type="xs:boolean"/>
+<xs:element minOccurs="0" name="nug" type="xs:string"/>
+<xs:element minOccurs="0" name="maturityDate" type="xs:string"/>
+<xs:element minOccurs="0" name="transmission" type="xs:string"/>
+<xs:element minOccurs="0" name="registrationDate" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="model">
+<xs:sequence>
+<xs:element name="code" type="xs:string"/>
+<xs:element name="name" type="xs:string"/>
+<xs:element name="make" type="tns:make"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="make">
+<xs:sequence>
+<xs:element name="name" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="productDetail">
+<xs:sequence>
+<xs:element minOccurs="0" name="id" type="xs:string"/>
+<xs:element name="type" type="xs:string"/>
+<xs:element name="productClass" type="xs:string"/>
+<xs:element name="form" type="tns:form"/>
+<xs:element name="cost" type="xs:double"/>
+<xs:element minOccurs="0" name="salesTax" type="xs:double"/>
+<xs:element minOccurs="0" name="deductibleAmount" type="xs:double"/>
+<xs:element minOccurs="0" name="reducingAmount" type="xs:double"/>
+<xs:element minOccurs="0" name="ppmIntervalMiles" type="xs:int"/>
+<xs:element name="disappearing" type="xs:boolean"/>
+<xs:element name="reducing" type="xs:boolean"/>
+<xs:element name="coverageCode" type="xs:string"/>
+<xs:element name="coverageName" type="xs:string"/>
+<xs:element name="termMonths" type="xs:int"/>
+<xs:element name="termMiles" type="xs:int"/>
+<xs:element minOccurs="0" name="systemPin" type="xs:string"/>
+<xs:element name="coveragePlan" type="xs:boolean"/>
+<xs:element name="totalAllowableMilesContract" type="xs:double"/>
+<xs:element name="numberOfService" type="xs:int"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="form">
+<xs:sequence>
+<xs:element name="type" type="xs:string"/>
+<xs:element minOccurs="0" name="number" type="xs:string"/>
+<xs:element name="isCombo" type="xs:boolean"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="contact">
+<xs:sequence>
+<xs:element name="type" type="xs:string"/>
+<xs:element minOccurs="0" name="memberNumber" type="xs:string"/>
+<xs:element minOccurs="0" name="salutation" type="xs:string"/>
+<xs:element name="firstName" type="xs:string"/>
+<xs:element minOccurs="0" name="lastName" type="xs:string"/>
+<xs:element minOccurs="0" name="middleInitialName" type="xs:string"/>
+<xs:element minOccurs="0" name="gender" type="xs:string"/>
+<xs:element minOccurs="0" name="email" type="xs:string"/>
+<xs:element minOccurs="0" name="address" type="tns:address"/>
+<xs:element maxOccurs="unbounded" minOccurs="0" name="phones" type="tns:phone"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="financeDetails">
+<xs:sequence>
+<xs:element name="financingType" type="xs:string"/>
+<xs:element minOccurs="0" name="ballonResidualAmount" type="xs:double"/>
+<xs:element minOccurs="0" name="financedAmount" type="xs:double"/>
+<xs:element minOccurs="0" name="apr" type="xs:double"/>
+<xs:element minOccurs="0" name="paymentAmount" type="xs:double"/>
+<xs:element minOccurs="0" name="numberOfPayments" type="xs:int"/>
+<xs:element minOccurs="0" name="numberOfAdvPayments" type="xs:int"/>
+<xs:element minOccurs="0" name="numberOfSkipPayments" type="xs:int"/>
+<xs:element minOccurs="0" name="msrp" type="xs:double"/>
+<xs:element minOccurs="0" name="nada" type="xs:double"/>
+<xs:element minOccurs="0" name="interestStartDate" type="xs:date"/>
+<xs:element minOccurs="0" name="firstPaymentDate" type="xs:date"/>
+<xs:element minOccurs="0" name="loanNumber" type="xs:string"/>
+<xs:element minOccurs="0" name="gapIdNumber" type="xs:string"/>
+<xs:element minOccurs="0" name="leaseCapAmount" type="xs:double"/>
+<xs:element minOccurs="0" name="period" type="xs:int"/>
+<xs:element minOccurs="0" name="startDate" type="xs:date"/>
+<xs:element minOccurs="0" name="endDate" type="xs:date"/>
+<xs:element minOccurs="0" name="grossCapCost" type="xs:double"/>
+<xs:element minOccurs="0" name="totalAllowableMilesContract" type="xs:double"/>
+<xs:element minOccurs="0" name="scheduledTerminationDate" type="xs:string"/>
+<xs:element minOccurs="0" name="monthlyPaymentAmount" type="xs:double"/>
+<xs:element minOccurs="0" name="sellerDate" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="keyValuePair">
+<xs:sequence>
+<xs:element name="key" type="xs:string"/>
+<xs:element name="value" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="getFormResponse">
+<xs:sequence>
+<xs:element minOccurs="0" name="return" type="tns:formResponse"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="formResponse">
+<xs:sequence>
+<xs:element name="status" type="tns:status"/>
+<xs:element maxOccurs="unbounded" minOccurs="0" name="pdfs" type="tns:pdf"/>
+<xs:element maxOccurs="unbounded" minOccurs="0" name="fillers" type="tns:keyValuePair"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="status">
+<xs:sequence>
+<xs:element name="error" type="xs:boolean"/>
+<xs:element maxOccurs="unbounded" minOccurs="0" name="errors" type="tns:error"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="error">
+<xs:sequence>
+<xs:element name="key" type="xs:string"/>
+<xs:element name="message" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="pdf">
+<xs:sequence>
+<xs:element name="type" type="xs:string"/>
+<xs:element name="url" type="xs:string"/>
+<xs:element minOccurs="0" name="pdf" type="xs:base64Binary"/>
+<xs:element name="number" type="xs:string"/>
+<xs:element name="issued" type="xs:dateTime"/>
+<xs:element minOccurs="0" name="signatures" type="tns:signatures"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="signatures">
+<xs:sequence>
+<xs:element maxOccurs="unbounded" minOccurs="0" name="signature" type="tns:signature"/>
+</xs:sequence>
+</xs:complexType>
+<xs:complexType name="signature">
+<xs:sequence>
+<xs:element minOccurs="0" name="name" type="xs:string"/>
+<xs:element minOccurs="0" name="type" type="xs:string"/>
+<xs:element name="x" type="xs:double"/>
+<xs:element name="y" type="xs:double"/>
+<xs:element name="xbound" type="xs:double"/>
+<xs:element name="ybound" type="xs:double"/>
+<xs:element minOccurs="0" name="pageNumber" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+<xs:element name="Exception" type="tns:Exception"/>
+<xs:complexType name="Exception">
+<xs:sequence>
+<xs:element minOccurs="0" name="message" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:schema>
+  </wsdl:types>
+  <wsdl:message name="Exception">
+    <wsdl:part element="tns:Exception" name="Exception"/>
+  </wsdl:message>
+  <wsdl:message name="getForm">
+    <wsdl:part element="tns:getForm" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="getFormResponse">
+    <wsdl:part element="tns:getFormResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:portType name="FormsWebService">
+    <wsdl:operation name="getForm">
+      <wsdl:input message="tns:getForm" name="getForm"/>
+      <wsdl:output message="tns:getFormResponse" name="getFormResponse"/>
+      <wsdl:fault message="tns:Exception" name="Exception"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="FormsWebServiceImplServiceSoapBinding" type="tns:FormsWebService">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="getForm">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getForm">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getFormResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="Exception">
+        <soap:fault name="Exception" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="FormsWebServiceImplService">
+    <wsdl:port binding="tns:FormsWebServiceImplServiceSoapBinding" name="FormsWebServiceImplPort">
+      <soap:address location="https://uat.forms.thewarrantygroup.com/FormsService/ws/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

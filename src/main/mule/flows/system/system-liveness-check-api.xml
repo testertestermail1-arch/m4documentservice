@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<flow name="system-liveness-check-api-flow" doc:id="f30c07b1-7771-4153-9f68-f0479e816b62">
+		<logger level="INFO" doc:name="Inside Health Check Process Layer" doc:id="b5ae7c41-1736-40a1-95d2-8e19833eaaec" message='Message Id : #[correlationId] || Inside Health Check Process Layer ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+		<flow-ref doc:name="Call system-liveness-check-informaticaGlobalDB-flow" doc:id="7657fac8-2d63-4ada-9e98-2f7201aa53f3" name="system-liveness-check-informaticaGlobalDB-flow" />
+		<flow-ref doc:name="Call get:\springcm\healthcheck:forms-internal-api-config" doc:id="5a9f9bae-9aec-443f-a7ba-84807ae67e54" name="get:\springcm\healthcheck:forms-internal-api-config" target="springCMResponse" />
+		<ee:transform doc:name="Form Final Output Payload">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"API-SpringCM-Forms": vars.springCMResponse.status,
+	"DB-Azure-InformaticaGlobalDB": vars.informaticaGlobalDBStatus
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/json
+var response = {
+	"API-SpringCM-Forms": vars.springCMResponse.status,
+	"DB-Azure-InformaticaGlobalDB": vars.informaticaGlobalDBStatus
+}
+var failedCount= sizeOf(response filterObject ($ == "Failure") mapObject {($$):$})
+var failedComponent= response filterObject ($ == "Failure") mapObject (($$):$)
+---
+if(failedCount>1) "503" 
+else (
+   if(failedComponent."API-SpringCM-Forms" != null) "518" 
+   else if(failedComponent."DB-Azure-InformaticaGlobalDB" != null) "519"
+   else "200")]]></ee:set-variable>
+				<ee:set-variable variableName="reasonPhrase" ><![CDATA[%dw 2.0
+output application/json
+var response = {
+	"API-SpringCM-Forms": vars.springCMResponse.status,
+	"DB-Azure-InformaticaGlobalDB": vars.informaticaGlobalDBStatus
+}
+var failedCount= sizeOf(response filterObject ($ == "Failure") mapObject {($$):$})
+var failedComponent= response filterObject ($ == "Failure") mapObject (($$):$)
+---
+if(failedCount>1) ""
+else (
+   if(failedComponent."API-SpringCM-Forms" != null) "SpringCM Error" 
+   else if(failedComponent."DB-Azure-InformaticaGlobalDB" != null) "Informatica Global DB Error"
+   else "")]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Final Logger" doc:id="b0840b10-2920-47f3-ab03-f84c6ee0a99e" message='Message Id : #[correlationId] || Health Check Process Layer Ends ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+		<error-handler ref="global-error-handler"/>
+	</flow>
+	<sub-flow name="system-liveness-check-informaticaGlobalDB-flow" doc:id="08254efe-74a8-47e4-9e2d-e383272202b7">
+		<try doc:name="Try" doc:id="0990f09e-54fb-4093-aef3-84c8b4b0214d">
+			<logger level="INFO" doc:name="Healthcheck Request for Logger DB" doc:id="be2a5a61-01ec-4108-805b-87e9faba4f47" message='Message Id : #[correlationId] || Before Health Check Call for Informatica Global DB ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+			<db:select doc:name="Healthcheck Processing for Informatica Global DB" doc:id="53359b4a-2955-4af9-924f-4f237fb0de23" config-ref="Logger_Database_Config" targetValue='#[if (payload[0].ID==1) "Success" else "Failure"]' target="informaticaGlobalDBStatus">
+			<reconnect frequency="${sql.reconnection.frequency}" count="${sql.reconnection.attempts}" />
+				<db:sql><![CDATA[${db.healthcheck.query}]]></db:sql>
+			</db:select>
+			<logger level="INFO" doc:name="Healthcheck Process Call Finished" doc:id="f6c5a330-8e78-4bba-9158-fdcbc679c8a5" message='Message Id : #[correlationId] || Informatica Global DB Health Check Call Ended ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+			<error-handler>
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="83aa932e-d26b-4138-a401-739acda77115">
+					<set-variable value="Failure" doc:name="Set Informatica Global DB Status" doc:id="70286b0a-fecf-429c-944c-64230b6b17bb" variableName="informaticaGlobalDBStatus"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</sub-flow>
+</mule>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="global-config-test-suite.xml" />
+	
+	<munit:test name="global-config-test-suite-experience-forms-error-handler_notification_xml_flowTest" doc:id="26d7cfc2-525e-435d-a9e1-25e731c47f21" description="Test">
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="2f0dba29-e346-4bf8-8b3a-195c9c44f4cb" processor="cloudhub:create-notification">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="faca65e7-d9ec-4db2-acdc-ceaaa4a53708" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{ "status" : "mock successufull" }]' />
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<ee:transform doc:name="Transform Message" doc:id="4cbd4058-69c6-4007-9b11-404d54bdc448" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+  "Envelope": {
+    "Body": {
+      "getFormResponse": {
+        "return": {
+          "status": {
+            "error": "true",
+            "errors": {
+              "key": "Connection Exception",
+              "message": "A connection Exception occurred. Please try again."
+            }
+          }
+        }
+      }
+    }
+  }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+false]]></ee:set-variable>
+					<ee:set-variable variableName="contractNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+"XYZ"]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Flow-ref to experience-forms-error-handler_notification_flow" doc:id="b36c1bc8-3d14-45c0-ab18-cbeb1420d600" name="experience-forms-error-handler_notification_flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="ec61d473-da2b-43f9-a542-960b272a7f1e" is='#[MunitTools::equalTo("mock successufull")]' expression="#[payload.status]"/>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="global-config-test-suite-experience-forms-error-handler_notification_json_flowTest" doc:id="c10ea9ac-a2fa-442d-8e05-b7b679acf74f" description="Test">
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="a5c745c1-2409-4199-b927-901d6581f6ce" processor="cloudhub:create-notification">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e7ee2938-4b35-4754-8ce8-ca3c55c87fdc" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{ &#10;"status" : "mock successufull" &#10;}]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+
+		</munit:behavior>
+		<munit:execution >
+			<ee:transform doc:name="Transform Message" doc:id="be69f87b-1b40-49f0-a461-d655e6edeca8" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "status": "Failure",
+  "errors": [
+    {
+      "key": "Connection Exception",
+      "message": "A connection Exception occurred. Please try again."
+    }
+  ]
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+true]]></ee:set-variable>
+					<ee:set-variable variableName="contractNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+"XYZ"]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Flow-ref to experience-forms-error-handler_notification_flow" doc:id="fea3b166-25ef-4d0b-9bee-d7d98b01bb1c" name="experience-forms-error-handler_notification_flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="bbe9ee17-5d43-42f0-81e2-8befc35d6256" is='#[MunitTools::equalTo("mock successufull")]' expression="#[payload.status]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

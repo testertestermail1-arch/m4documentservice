@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+<sub-flow name="system-qcert-get-vehicleDetails-flow" doc:id="b3294d05-fdad-4dae-ae91-00009f498407" >
+        <logger level="INFO" doc:name="Before Get Vehicle Details Logger" doc:id="c80cf21e-cb4a-4f36-b83c-4f53e9c751c8" message='MessageId: #[correlationId] || Before Get Vehicle Details Logger ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+        <http:request method="POST" doc:name="Call Get Vehicle Details" doc:id="dbfd2717-405c-48f3-9bac-fb295e2c755b" config-ref="Vehicle_Request_Configuration" path="${api.getVehicleDetails.internal.listener.path}">
+        </http:request>
+		<ee:transform doc:name="Frame Vehicle Details" doc:id="87af8a23-9598-4024-a652-71b86aac2e7a">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(payload.resultSet1 map (item,index) -> {
+	EXTERIOR: item.EXTERIOR,
+	ESIZE: item.ESIZE,
+	WIDTH: item.WIDTH,
+	EBLOCKTYPE: item.EBLOCKTYPE,
+	TRIM: item.TRIM,
+	EHEADCONFIG: item.EHEADCONFIG,
+	VIN: item.VIN,
+	CYLINDER: item.CYLINDER,
+	HEIGHT: item.HEIGHT,
+	INTERIOR: item.INTERIOR,
+	WHEELBASE: item.WHEELBASE,
+	VEH_YEAR: item.VEH_YEAR,
+	LIST_PRICE: item.LIST_PRICE,
+	HWY: item.HWY,
+	CITY: item.CITY,
+	VEH_ID: item.VEH_ID,
+	ENGINE: item.ENGINE,
+	BODY_STYLE: item.BODY_STYLE,
+	ENCYCLOPEDIA: item.ENCYCLOPEDIA,
+	TRANSMISSION: item.TRANSMISSION,
+	SEATS: item.SEATS,
+	SAFETY: item.SAFETY,
+	LENGTH: item.LENGTH,
+	MAKE: item.MAKE,
+	TITLE_CHECK_REPORT: item.TITLE_CHECK_REPORT,
+	PEDIGREE: item.PEDIGREE,
+	MODEL_ID: item.MODEL_ID,
+	ENG: item.ENG,
+	GAS: item.GAS,
+	COLOR: item.COLOR,
+	ADDITIONAL: item.ADDITIONAL,
+	CARBURETION: item.CARBURETION,
+	MODEL: item.MODEL,
+	ODOMETER: item.ODOMETER,
+	STOCK_NUM: item.STOCK_NUM
+})]]></ee:set-payload>
+            </ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="dbResult" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.resultSet1 map (item,index) -> item]]></ee:set-variable>
+			</ee:variables>
+        
+</ee:transform>
+		<logger level="DEBUG" doc:name="After Get Vehicle Details Logger" doc:id="2b16865d-071e-4fa3-8e55-6d6ff4bc2662" message='MessageId: #[correlationId] ||  After Get Vehicle Details Logger - #[payload] ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' category="com.twg.mule.qcertform.request"/>
+</sub-flow>
+<sub-flow name="system-qcert-update-vehicleInventoryDetails-flow" doc:id="bb9aa808-9e3f-401b-84b5-cb8d21a1d55d" >
+        <logger level="INFO" doc:name="Before Update Vehicle Inventory Details" doc:id="ee3ae886-0812-41ad-a18a-6a9458f59896" message='MessageId: #[correlationId] || Before Update Vehicle Inventory Details Logger ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+        <http:request method="POST" doc:name="Call Update Vehicle Inventory Details" doc:id="8b73504b-bd8a-491a-80cc-0e5ee1634acb" config-ref="Vehicle_Request_Configuration" path="${api.updateInventoryDetails.internal.listener.path}">
+        </http:request>
+		<ee:transform doc:name="Frame Update Vehicle Inventory Details Response" doc:id="ef32b251-1fdb-4376-9db2-664022a44417">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+			<ee:variables >
+			</ee:variables>
+        
+</ee:transform>
+		<logger level="DEBUG" doc:name="After Update Vehicle Inventory Details" doc:id="adaaaba3-89cf-4917-99fe-ff858f9311f5" message='MessageId: #[correlationId] ||  After Update Vehicle Inventory Details - #[payload] ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' category="com.twg.mule.qcertform.request"/>
+</sub-flow>
+</mule>

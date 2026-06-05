@@ -1,0 +1,35 @@
+#%RAML 1.0
+title: Forms API
+baseUri: http://www.twg.com
+protocols: [HTTP,HTTPS]
+mediaType: aplication/json
+documentation:
+  - title: Forms API documentation
+    content: |
+      Documentation part.
+traits:
+  -client-id-required:
+    queryParameters:
+      client_id:
+        type: string
+        description: Client ID provided by the API Manager
+        example: 3MVG9AJuBE3rTYDg69XgRBkCfEuSGZNx07zl7q0SlFBH7MKHWZjlIUqpciZRhNePDup3uCuCOtNHS14pBQxKn
+        required: true
+      client_secret:
+        type: string
+        description: The Client Secret Key provided by the API Manager
+        example: 3MVG9AJuBE3rTYDg69XgRBkCfEuSGZNx07zl7q0SlFBH7MKHWZjlIUqpciZRhNePDup3uCuCOtNHS14pBQxKn
+        required: true
+
+
+/forms/{template-id}:
+  uriParameters:
+   template-id:
+     type: string
+  get:
+    description: Get the PDF document from template ID.   
+    responses:
+      200:
+        body:
+          application/pdf:
+          

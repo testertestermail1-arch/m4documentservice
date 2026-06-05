@@ -1,0 +1,10 @@
+{
+    "status": "Failure",
+    "message":"Bad request",
+    "errors": [
+        {
+            "key": "required field",
+            "message": "The required field cannot be null, blank nor contain whitespaces only."
+        }
+    ]
+}

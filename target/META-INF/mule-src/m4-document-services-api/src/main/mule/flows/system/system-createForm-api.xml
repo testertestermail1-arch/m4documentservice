@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<sub-flow name="system-create-form-flow" doc:id="485e8dd7-6255-408d-bb67-3cea3336696c" >
+		<logger level="INFO" doc:name="Before Java Class Call Logger" doc:id="261a68eb-342c-4c26-a6d9-4578806befe9" message="MessageId: #[correlationId] - Before java class call Logger"/>
+		<ee:transform doc:name="Store Required Vars" doc:id="9088acb1-8430-4048-ad0f-d84e020fae59">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="signatureValues"><![CDATA[%dw 2.0
+output application/java
+---
+{
+"dealerValues":vars.dealerValues,
+"customerValues":vars.customerValues,
+"coBuyerValues":vars.coBuyerValues,
+"customerInitialsValues":vars.customerInitialsValues,
+"dealerInitialsValues":vars.dealerInitialsValues,
+"coBuyerInitialsValues":vars.coBuyerInitialsValues
+}]]></ee:set-variable>
+				<ee:set-variable variableName="dwlVars" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+"formsMessageId":vars.formsMessageId,
+"bscTermMonth":vars.bscTermMonth,
+"ptTermMonth":vars.ptTermMonth,
+"stampSignatureVar":vars.stampSignatureVar,
+"qrCode":vars.qrCode,
+"expirationType":vars.expirationType,
+"phoneB":vars.phoneB,
+"phoneCB":vars.phoneCB,
+"phoneL":vars.phoneL,
+}]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="06539da4-15df-4a90-a8c7-22ef4efdec1e" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="pdf" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.pdf))vars.pdf else ""]]></ee:set-variable>
+				<ee:set-variable variableName="legacyForm" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.legacyForm))vars.legacyForm else {}]]></ee:set-variable>
+				<ee:set-variable variableName="dwlVars" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.dwlVars)) vars.dwlVars else {}]]></ee:set-variable>
+				<ee:set-variable variableName="signatureValues" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.signatureValues)) vars.signatureValues else {}]]></ee:set-variable>
+				<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.isPayloadTypeJSON)) vars.isPayloadTypeJSON else false]]></ee:set-variable>
+				<ee:set-variable variableName="qrCodeMap" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.qrCodeMap))vars.qrCodeMap else {}]]></ee:set-variable>
+				<ee:set-variable variableName="jsonPayload" ><![CDATA[%dw 2.0
+output application/java
+---
+if((not isEmpty(payload)) and vars.isPayloadTypeJSON == true) payload else null]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="Stage Logger" doc:id="01578e15-2a49-4d2e-bedb-677564031d1e" message="MessageId: #[correlationId]  || signatureValues: #[vars.signatureValues] newForm: #[vars.newForm] isRequestJSONType: #[vars.isRequestJSONType] legacyForm: #[vars.legacyForm] dwlVars: #[vars.dwlVars]" category="com.documents.forms.api.request"/>
+		<java:new doc:name="DocumentService Java Class Instance" doc:id="ad308bbb-7510-4fb6-afbc-ec6e0412d3ab" class="com.twg.api.experience_forms_api.DocumentService"  target="documentServiceInstance" constructor="DocumentService()"/>
+		<try doc:name="Try" doc:id="606c2c8a-7731-4150-bfed-8f24b045d720" >
+			<java:invoke doc:name="Call DocumentService java class" doc:id="6265eed3-0585-4d97-afbe-e0fe87c7122b" instance="#[vars.documentServiceInstance]" class="com.twg.api.experience_forms_api.DocumentService" target="javaPayload" method="validate(java.util.LinkedHashMap,java.lang.Boolean,java.lang.String,java.util.LinkedHashMap,java.util.LinkedHashMap,java.util.LinkedHashMap,java.util.LinkedHashMap)">
+			<java:args><![CDATA[#[{
+jsonpayload: vars.jsonPayload,
+isRequestJSONType:vars.isPayloadTypeJSON,
+pdfByetArray:vars.pdf,
+xmlpayload:vars.legacyForm,
+dwlVars:vars.dwlVars,
+qrCodeMap:vars.qrCodeMap,
+signatureValues:vars.signatureValues
+}]]]></java:args>
+		</java:invoke>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="java class exception" doc:id="d3b0385a-a9fe-4008-99a8-3baeae64e19f">
+					<logger level="INFO" doc:name="Stage Logger" doc:id="06f792f7-fc9f-4647-8d61-8d62d65f153c" message="MessageId: #[correlationId] || Java validation failed"/>
+					<ee:transform doc:name="Inside java validation error" doc:id="abff2ed6-57f8-4f6e-b29a-f71d9fe9f938">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+    "status": "failure",
+    "DeveloperMessage":error.description
+}]]></ee:set-payload>
+					</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+						
+</ee:variables>
+				</ee:transform>
+					<raise-error doc:name="Java Validation Failure" doc:id="061daa47-2165-4fe6-83af-f18f79131ba7" type="CUS_JAVA:ERROR" />
+			</on-error-propagate>
+			</error-handler>
+		
+		</try>
+						<ee:transform doc:name="Vars From Java Class" doc:id="db829cbe-a382-4a98-a982-e0169b54c351" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="formFileName" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.javaPayload.formFileName]]></ee:set-variable>
+				<ee:set-variable variableName="accountNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.javaPayload.accountNumber]]></ee:set-variable>
+				<ee:set-variable variableName="folderName" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.javaPayload.folderName]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="After Java Class Call Logger" doc:id="35c56770-b513-4b2a-915e-128322ceb0c5" message="MessageId: #[correlationId] - After java class call Logger"/>
+	</sub-flow>
+	<sub-flow name="system-qcert-create-form-flow" doc:id="5361a3d1-3bad-45eb-891d-6d044bd7e945" >
+<logger level="INFO" doc:name="Before Java Class Call Logger" doc:id="4cd0b35c-a12e-4620-886c-6c44e3a0407d" message="MessageId: #[correlationId] - Before java class call Logger"/>
+<java:new doc:name="QCertWrapper Java Class Instance" doc:id="361af0f2-5718-4a74-9c52-db6b0b616b2c" class="com.twg.api.experience_forms_api.QCertWrapper"  target="qcertWrapperInstance" constructor="QCertWrapper()"/>
+<java:invoke doc:name="Call QCertWrapper java class" doc:id="7c1bc7b4-0b12-4893-a74a-90579022899c" instance="#[vars.qcertWrapperInstance]" class="com.twg.api.experience_forms_api.QCertWrapper" target="javaPayload" method="generateForm(java.util.ArrayList)">
+<java:args><![CDATA[#[{
+canonicalList: vars.canonicalList}]]]></java:args>
+</java:invoke>
+<logger level="INFO" doc:name="After Java Class Call Logger" doc:id="b652e9d6-0136-4c81-afef-e732b5858c26" message="MessageId: #[correlationId] - After java class call Logger"/>
+</sub-flow>
+</mule>
+

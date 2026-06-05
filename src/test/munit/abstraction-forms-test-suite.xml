@@ -1,0 +1,1454 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="experience-forms-soap-api-test-suite.xml" />
+	<munit:test name="Abstract-forms-accountNumber-validation-test" doc:id="c579cfa3-9c8b-4d6f-aa57-347f5d5fdf9d" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="b87904b5-ac90-4c74-b44d-87bbbd1b7dcc" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call system-get-cerdentials-flow" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[""]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<ee:transform doc:name="payload" doc:id="30408826-86c3-42af-8813-7d7f7e93d075" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="originalPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "Envelope": {
+    "Header": null,
+    "Body": {
+      "getForm": {
+        "arg0": {
+          "urlOnly": "false",
+          "quoteId": "03e2a3ef-19e0-4e6f-9c6d-bf1578a18b41",
+          "callingApp": {
+            "serviceSecurity": {
+              "token": "test",
+              "username": "abc"
+            },
+            "appId": "ODE",
+            "persist": "false",
+            "sourceSystem": "MR",
+            "businessUnit": "WLSC"
+          },
+          "dealer": {
+            "rdgId": "0ROH0005",
+            "internalId": "",
+            "name": "PEN Test Dealer 1",
+            "address": {
+              "address1": "123 Street Suite 200",
+              "zip": "65847",
+              "city": "Hoffman Estates",
+              "state": "NC",
+              "country": "USA"
+            },
+            "fieldRep": "Test Name",
+            "phone": {
+              "type": "W",
+              "number": "1234568",
+              "areaCode": "847"
+            }
+          },
+          "vehicle": {
+            "type": "C",
+            "model": {
+              "code": "02565",
+              "name": "Aaccord",
+              "make": {
+                "name": "Honda"
+              }
+            },
+            "inServiceDate": "2018-08-13",
+            "odometerAtPurchase": "95",
+            "vin": "3FA6P0H78GR275140",
+            "vehicleClass": "F6",
+            "year": "2016",
+            "price": "24275",
+            "odometer": "95",
+            "isDiesel": "false",
+            "isFourByFour": "false",
+            "isTurbo": "false",
+            "isCar": "true",
+            "isTruck": "false",
+            "isCommercial": "false",
+            "isHybrid": "false",
+            "hasNavigation": "false",
+            "isNew": "true",
+            "maturityDate": "2021-08-13"
+          },
+          "contractNumber": null,
+          "productDetails": {
+            "id": "AWLAR550",
+            "type": "WAR",
+            "productClass": "NA",
+            "form": {
+              "type": "S",
+              "number": "RAMAOVSCNTB1216",
+              "isCombo": "false"
+            },
+            "cost": "962",
+            "deductibleAmount": "100",
+            "disappearing": "false",
+            "reducing": "false",
+            "coverageCode": "PE",
+            "coverageName": "Platinum",
+            "termMonths": "36",
+            "termMiles": "45000",
+            "systemPin": null,
+            "coveragePlan": "false",
+            "totalAllowableMilesContract": "0",
+            "numberOfService": "0"
+          },
+          "contacts": {
+            "type": "B",
+            "firstName": "Rodney",
+            "lastName": "Butler ",
+            "middleInitialName": null,
+            "email": "Rodney@Butler.com",
+            "address": {
+              "address1": "869 South Kirkland Street",
+              "address2": "Suite 101",
+              "zip": "51106",
+              "city": "Sioux City",
+              "state": "IA",
+              "country": "USA"
+            },
+            "phones": {
+              "type": "H",
+              "number": "5979563",
+              "areaCode": "712"
+            }
+          },
+          "financeDetails": {
+            "financingType": "L",
+            "ballonResidualAmount": "0",
+            "financedAmount": "24275",
+            "apr": "7",
+            "paymentAmount": "12600",
+            "numberOfPayments": "36",
+            "msrp": "25000",
+            "firstPaymentDate": "2018-10-07",
+            "leaseCapAmount": "0",
+            "period": "0",
+            "grossCapCost": "0",
+            "scheduledTerminationDate": null,
+            "monthlyPaymentAmount": "350"
+          },
+          "fillers": {
+            "key": "SEND_SIGNATURE",
+            "value": "True"
+          }
+        }
+      }
+    }
+  }
+}]]></ee:set-variable>
+					<ee:set-variable variableName="userValue" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="f67cd740-62cf-4485-a44c-f7c336c71b6e" >
+				<flow-ref doc:name="Flow-ref to getForm:\forms_api.soapkit-config" doc:id="bb4a3528-e51d-4893-b08f-d8b1a8490f31" name="getForm:\forms_api.soapkit-config" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="11dd5c0a-71e5-422d-857e-698cd1409638" >
+						<ee:transform doc:name="Transform Message" doc:id="c5784741-8f37-4789-8ab0-64773b365a0f" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="57fc384c-b3e0-4cc7-988f-a7cfffdedd87" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.getFormResponse.'return'.status.errors.message]" expected='The dealers internal Id cannot be null, blank nor contain whitespaces only.'/>
+		</munit:validation>
+	</munit:test>
+<munit:test name="Abstract-forms-userValidation-test" doc:id="1b73fbed-4c75-4aa2-8da0-999b8b540c73" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="a2f9e389-c928-4744-885e-b9e8974b2de4" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call system-get-cerdentials-flow" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[""]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<ee:transform doc:name="payload" doc:id="c2b8bf31-d700-4ff2-87dd-0a1d582545f9" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="originalPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "Envelope": {
+    "Header": null,
+    "Body": {
+      "getForm": {
+        "arg0": {
+          "urlOnly": "false",
+          "quoteId": "03e2a3ef-19e0-4e6f-9c6d-bf1578a18b41",
+          "callingApp": {
+            "serviceSecurity": {
+              "token": "test",
+              "username": "abc"
+            },
+            "appId": "ODE",
+            "persist": "false",
+            "sourceSystem": "MR",
+            "businessUnit": "WLSC"
+          },
+          "dealer": {
+            "rdgId": "0ROH0005",
+            "internalId": "0ROH0005",
+            "name": "PEN Test Dealer 1",
+            "address": {
+              "address1": "123 Street Suite 200",
+              "zip": "65847",
+              "city": "Hoffman Estates",
+              "state": "NC",
+              "country": "USA"
+            },
+            "fieldRep": "Test Name",
+            "phone": {
+              "type": "W",
+              "number": "1234568",
+              "areaCode": "847"
+            }
+          },
+          "vehicle": {
+            "type": "C",
+            "model": {
+              "code": "02565",
+              "name": "Aaccord",
+              "make": {
+                "name": "Honda"
+              }
+            },
+            "inServiceDate": "2018-08-13",
+            "odometerAtPurchase": "95",
+            "vin": "3FA6P0H78GR275140",
+            "vehicleClass": "F6",
+            "year": "2016",
+            "price": "24275",
+            "odometer": "95",
+            "isDiesel": "false",
+            "isFourByFour": "false",
+            "isTurbo": "false",
+            "isCar": "true",
+            "isTruck": "false",
+            "isCommercial": "false",
+            "isHybrid": "false",
+            "hasNavigation": "false",
+            "isNew": "true",
+            "maturityDate": "2021-08-13"
+          },
+          "contractNumber": null,
+          "productDetails": {
+            "id": "AWLAR550",
+            "type": "WAR",
+            "productClass": "NA",
+            "form": {
+              "type": "S",
+              "number": "RAMAOVSCNTB1216",
+              "isCombo": "false"
+            },
+            "cost": "962",
+            "deductibleAmount": "100",
+            "disappearing": "false",
+            "reducing": "false",
+            "coverageCode": "PE",
+            "coverageName": "Platinum",
+            "termMonths": "36",
+            "termMiles": "45000",
+            "systemPin": null,
+            "coveragePlan": "false",
+            "totalAllowableMilesContract": "0",
+            "numberOfService": "0"
+          },
+          "contacts": {
+            "type": "B",
+            "firstName": "Rodney",
+            "lastName": "Butler ",
+            "middleInitialName": null,
+            "email": "Rodney@Butler.com",
+            "address": {
+              "address1": "869 South Kirkland Street",
+              "address2": "Suite 101",
+              "zip": "51106",
+              "city": "Sioux City",
+              "state": "IA",
+              "country": "USA"
+            },
+            "phones": {
+              "type": "H",
+              "number": "5979563",
+              "areaCode": "712"
+            }
+          },
+          "financeDetails": {
+            "financingType": "L",
+            "ballonResidualAmount": "0",
+            "financedAmount": "24275",
+            "apr": "7",
+            "paymentAmount": "12600",
+            "numberOfPayments": "36",
+            "msrp": "25000",
+            "firstPaymentDate": "2018-10-07",
+            "leaseCapAmount": "0",
+            "period": "0",
+            "grossCapCost": "0",
+            "scheduledTerminationDate": null,
+            "monthlyPaymentAmount": "350"
+          },
+          "fillers": {
+            "key": "SEND_SIGNATURE",
+            "value": "True"
+          }
+        }
+      }
+    }
+  }
+}]]></ee:set-variable>
+					<ee:set-variable variableName="userValue" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="1c6ce1bb-0ccc-491d-8958-47846ad7b4ae" >
+				<flow-ref doc:name="Flow-ref to getForm:\forms_api.soapkit-config" doc:id="68bd2f2c-7637-4eda-bb67-ba6a3f6eaa92" name="getForm:\forms_api.soapkit-config" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="b6e11e64-711b-42c7-b46e-c3ac48f01839" >
+						<ee:transform doc:name="Transform Message" doc:id="1297ce89-7e2a-46f3-9ab2-38ba3ccfc2b6" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="cb52f6a3-6e98-4d69-9991-6a3684fcd988" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.Fault.getFormResponse.'return'.status.errors.message]" expected='The security service credentials are not valid.'/>
+		</munit:validation>
+	</munit:test>
+<munit:test name="Dealer-Mandatory-Fields-Test" doc:id="605af121-6c8f-4e7a-9cb6-5177d89d29f1" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="db7bfb7f-1c3e-4d55-9fcc-81ddcba05659" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+  "Envelope": {
+    "Header": null,
+    "Body": {
+      "getForm": {
+        "arg0": {
+          "urlOnly": "false",
+          "quoteId": "03e2a3ef-19e0-4e6f-9c6d-bf1578a18b41",
+          "callingApp": {
+            "serviceSecurity": {
+              "token": "AVD",
+              "username": "GGHF"
+            },
+            "appId": "ODE",
+            "persist": "false",
+            "sourceSystem": "MR",
+            "businessUnit": "WLSC"
+          },
+          "dealer": {
+            "rdgId": "0ROH0005",
+            "internalId": "0ROH0005",
+            "name": null,
+            "address": {
+              "address1": "123 Street Suite 200",
+              "zip": null,
+              "city": "Hoffman Estates",
+              "state": "NC",
+              "country": "USA"
+            },
+            "fieldRep": "Test Name",
+            "phone": {
+              "type": "W",
+              "number": "1234568",
+              "areaCode": "847"
+            }
+          },
+          "vehicle": {
+            "type": "C",
+            "model": {
+              "code": "02565",
+              "name": "Aaccord",
+              "make": {
+                "name": "Honda"
+              }
+            },
+            "inServiceDate": "2018-08-13",
+            "odometerAtPurchase": "95",
+            "vin": "3FA6P0H78GR275140",
+            "vehicleClass": "F6",
+            "year": "2016",
+            "price": "24275",
+            "odometer": "95",
+            "isDiesel": "false",
+            "isFourByFour": "false",
+            "isTurbo": "false",
+            "isCar": "true",
+            "isTruck": "false",
+            "isCommercial": "false",
+            "isHybrid": "false",
+            "hasNavigation": "false",
+            "isNew": "true",
+            "maturityDate": "2021-08-13"
+          },
+          "contractNumber": "Test123",
+          "productDetails": {
+            "id": "AWLAR550",
+            "type": "WAR",
+            "productClass": "NA",
+            "form": {
+              "type": "S",
+              "number": "RAMAOVSCNTB1216",
+              "isCombo": "false"
+            },
+            "cost": "962",
+            "deductibleAmount": "100",
+            "disappearing": "false",
+            "reducing": "false",
+            "coverageCode": "PE",
+            "coverageName": "Platinum",
+            "termMonths": "36",
+            "termMiles": "45000",
+            "systemPin": null,
+            "coveragePlan": "false",
+            "totalAllowableMilesContract": "0",
+            "numberOfService": "0"
+          },
+          "contacts": {
+            "type": "B",
+            "firstName": "Rodney",
+            "lastName": "Butler ",
+            "middleInitialName": null,
+            "email": "Rodney@Butler.com",
+            "address": {
+              "address1": "869 South Kirkland Street",
+              "address2": "Suite 101",
+              "zip": "51106",
+              "city": "Sioux City",
+              "state": "IA",
+              "country": "USA"
+            },
+            "phones": {
+              "type": "H",
+              "number": "5979563",
+              "areaCode": "712"
+            }
+          },
+          "financeDetails": {
+            "financingType": "L",
+            "ballonResidualAmount": "0",
+            "financedAmount": "24275",
+            "apr": "7",
+            "paymentAmount": "12600",
+            "numberOfPayments": "36",
+            "msrp": "25000",
+            "firstPaymentDate": "2018-10-07",
+            "leaseCapAmount": "0",
+            "period": "0",
+            "grossCapCost": "0",
+            "scheduledTerminationDate": null,
+            "monthlyPaymentAmount": "350"
+          },
+          "fillers": {
+            "key": "SEND_SIGNATURE",
+            "value": "True"
+          }
+        }
+      }
+    }
+  }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+false]]></ee:set-variable>
+				
+</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="legacyForm Var" doc:id="78df480e-b686-4b1a-aef9-4c714a8639f7" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="legacyForm" ><![CDATA[%dw 2.0
+output application/java
+
+---
+using (form = payload.Envelope.Body.getForm.arg0) {
+	urlOnly: form.urlOnly,
+	contractNumber: form.contractNumber,
+	quoteId: form.quoteId,
+	dealer: form.dealer,
+	callingApp: form.callingApp,
+	vehicle: form.vehicle,
+	product: form.*productDetails,
+	contacts: form.*contacts,
+	financeDetails: form.financeDetails,
+	filler:form.*fillers,
+	xmlInput: true
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="ce5200c8-36f6-49dd-a56a-6f65fe0cc67b" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="841e68e8-d323-48f5-9082-7a731f7e31b4" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="cbca716c-ea3d-43b9-8f63-9cb8294f737d" >
+						<ee:transform doc:name="Transform Message" doc:id="3a89db84-d78d-48d8-ad1d-eba05d6616bc" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<ee:transform doc:name="Prepare Xml Response" doc:id="de56f2d1-b759-4d79-a295-5a6cfe644bf5" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                       (vars.javaPayload.validationErrors mapObject errors:{ 
+             
+              key : $$,
+        message: $ 
+        
+                     })
+}
+}
+}
+}
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-equals doc:name="Assert postal code" doc:id="e2903605-e833-429d-8a8b-97e62ee407e9" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[0]]" expected="The address postalCode cannot be null, blank nor contain whitespaces only."/>
+            <munit-tools:assert-equals doc:name="Assert dealer name" doc:id="a5318dcc-3ceb-4561-a308-fd7854895b55" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[1]]" expected="The dealer's name cannot be null, blank nor contain whitespaces only."/>
+       </munit:validation>
+	
+</munit:test>
+<munit:test name="vehicle-Mandatory-Fields-Test" doc:id="ab2e213c-6b8d-4b5e-83d7-ca32679bce3e" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="5f87a417-d568-4cbe-adcb-cb4f67c7ef5b" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+  "Envelope": {
+    "Header": null,
+    "Body": {
+      "getForm": {
+        "arg0": {
+          "urlOnly": "false",
+          "quoteId": "03e2a3ef-19e0-4e6f-9c6d-bf1578a18b41",
+          "callingApp": {
+            "serviceSecurity": null,
+            "appId": "ODE",
+            "persist": "false",
+            "sourceSystem": "MR",
+            "businessUnit": "WLSC"
+          },
+          "dealer": {
+            "rdgId": "0ROH0005",
+            "internalId": "0ROH0005",
+            "name": "PEN Test Dealer 1",
+            "address": {
+              "address1": "123 Street Suite 200",
+              "zip": "65847",
+              "city": "Hoffman Estates",
+              "state": "NC",
+              "country": "USA"
+            },
+            "fieldRep": "Test Name",
+            "phone": {
+              "type": "W",
+              "number": "1234568",
+              "areaCode": "847"
+            }
+          },
+          "vehicle": {
+            "type": "C",
+            "model": {
+              "code": "02565",
+              "name": "Aaccord",
+              "make": {
+                "name": "Honda"
+              }
+            },
+            "inServiceDate": "2018-08-13",
+            "odometerAtPurchase": "95",
+            "vin": null,
+            "vehicleClass": "F6",
+            "year": null,
+            "price": "24275",
+            "odometer": "95",
+            "isDiesel": "false",
+            "isFourByFour": "false",
+            "isTurbo": "false",
+            "isCar": "true",
+            "isTruck": "false",
+            "isCommercial": "false",
+            "isHybrid": "false",
+            "hasNavigation": "false",
+            "isNew": "true",
+            "maturityDate": "2021-08-13"
+          },
+          "contractNumber": null,
+          "productDetails": {
+            "id": "AWLAR550",
+            "type": "WAR",
+            "productClass": "NA",
+            "form": {
+              "type": "S",
+              "number": "RAMAOVSCNTB1216",
+              "isCombo": "false"
+            },
+            "cost": "962",
+            "deductibleAmount": "100",
+            "disappearing": "false",
+            "reducing": "false",
+            "coverageCode": "PE",
+            "coverageName": "Platinum",
+            "termMonths": "36",
+            "termMiles": "45000",
+            "systemPin": null,
+            "coveragePlan": "false",
+            "totalAllowableMilesContract": "0",
+            "numberOfService": "0"
+          },
+          "contacts": {
+            "type": "B",
+            "firstName": "Rodney",
+            "lastName": "Butler ",
+            "middleInitialName": null,
+            "email": "Rodney@Butler.com",
+            "address": {
+              "address1": "869 South Kirkland Street",
+              "address2": "Suite 101",
+              "zip": "51106",
+              "city": "Sioux City",
+              "state": "IA",
+              "country": "USA"
+            },
+            "phones": {
+              "type": "H",
+              "number": "5979563",
+              "areaCode": "712"
+            }
+          },
+          "financeDetails": {
+            "financingType": "L",
+            "ballonResidualAmount": "0",
+            "financedAmount": "24275",
+            "apr": "7",
+            "paymentAmount": "12600",
+            "numberOfPayments": "36",
+            "msrp": "25000",
+            "firstPaymentDate": "2018-10-07",
+            "leaseCapAmount": "0",
+            "period": "0",
+            "grossCapCost": "0",
+            "scheduledTerminationDate": null,
+            "monthlyPaymentAmount": "350"
+          },
+          "fillers": {
+            "key": "SEND_SIGNATURE",
+            "value": "True"
+          }
+        }
+      }
+    }
+  }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+false]]></ee:set-variable>
+				
+</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="legacyForm Var" doc:id="ac899e52-4d0d-407b-99dd-bbdcc5495bdf" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="legacyForm" ><![CDATA[%dw 2.0
+output application/java
+
+---
+using (form = payload.Envelope.Body.getForm.arg0) {
+	urlOnly: form.urlOnly,
+	contractNumber: form.contractNumber,
+	quoteId: form.quoteId,
+	dealer: form.dealer,
+	callingApp: form.callingApp,
+	vehicle: form.vehicle,
+	product: form.*productDetails,
+	contacts: form.*contacts,
+	financeDetails: form.financeDetails,
+	filler:form.*fillers,
+	xmlInput: true
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="10347f86-25a5-4207-98eb-e86db3b032a1" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="ed7209ec-72c3-40f1-87de-eca65aa0a305" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e11c80d4-4f9e-4b25-a8aa-1d1af36b60e5" >
+						<ee:transform doc:name="Transform Message" doc:id="a6624463-d040-4308-b8d1-8b3ad2c5506a" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<ee:transform doc:name="Prepare Xml Response" doc:id="ab5d4fab-941a-4fea-8edf-10fd3707073d" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                       (vars.javaPayload.validationErrors mapObject errors:{ 
+             
+              key : $$,
+        message: $ 
+        
+                     })
+}
+}
+}
+}
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-equals doc:name="Assert vin" doc:id="89f0a073-eb5c-4b13-9590-692b40f004bc" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[0]]" expected="The vehicle vin cannot be null, blank nor contain whitespaces only."/>
+            <munit-tools:assert-equals doc:name="Assert vehicle year" doc:id="17a1c2e4-74d6-4c6f-8102-f8f998b46f5a" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[1]]" expected="The vehicle year cannot be null, blank nor contain whitespaces only."/>
+       </munit:validation>
+	
+</munit:test>
+<munit:test name="product-Mandatory-Fields-Test" doc:id="2a4993cb-5021-425d-b885-b540cf19fcd2" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="c3862126-e3fc-4203-98a6-abac05875a17" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+  "Envelope": {
+    "Header": null,
+    "Body": {
+      "getForm": {
+        "arg0": {
+          "urlOnly": "false",
+          "quoteId": "03e2a3ef-19e0-4e6f-9c6d-bf1578a18b41",
+          "callingApp": {
+            "serviceSecurity": null,
+            "appId": "ODE",
+            "persist": "false",
+            "sourceSystem": "MR",
+            "businessUnit": "WLSC"
+          },
+          "dealer": {
+            "rdgId": "0ROH0005",
+            "internalId": "0ROH0005",
+            "name": "PEN Test Dealer 1",
+            "address": {
+              "address1": "123 Street Suite 200",
+              "zip": "65847",
+              "city": "Hoffman Estates",
+              "state": "NC",
+              "country": "USA"
+            },
+            "fieldRep": "Test Name",
+            "phone": {
+              "type": "W",
+              "number": "1234568",
+              "areaCode": "847"
+            }
+          },
+          "vehicle": {
+            "type": "C",
+            "model": {
+              "code": "02565",
+              "name": "Aaccord",
+              "make": {
+                "name": "Honda"
+              }
+            },
+            "inServiceDate": "2018-08-13",
+            "odometerAtPurchase": "95",
+            "vin": "3FA6P078GR275140",
+            "vehicleClass": "F6",
+            "year": "2016",
+            "price": "24275",
+            "odometer": "95",
+            "isDiesel": "false",
+            "isFourByFour": "false",
+            "isTurbo": "false",
+            "isCar": "true",
+            "isTruck": "false",
+            "isCommercial": "false",
+            "isHybrid": "false",
+            "hasNavigation": "false",
+            "isNew": "true",
+            "maturityDate": "2021-08-13"
+          },
+          "contractNumber": null,
+          "productDetails": {
+            "id": "AWLAR550",
+            "type": "WAR",
+            "productClass": null,
+            "form": {
+              "type": "S",
+              "number": "RAMAOVSCNTB1216",
+              "isCombo": "false"
+            },
+            "cost": "962",
+            "deductibleAmount": "100",
+            "disappearing": "false",
+            "reducing": "false",
+            "coverageCode": "PE",
+            "coverageName": null,
+            "termMonths": "36",
+            "termMiles": null,
+            "systemPin": null,
+            "coveragePlan": "false",
+            "totalAllowableMilesContract": "0",
+            "numberOfService": "0"
+          },
+          "contacts": {
+            "type": "B",
+            "firstName": "Rodney",
+            "lastName": "Butler ",
+            "middleInitialName": null,
+            "email": "Rodney@Butler.com",
+            "address": {
+              "address1": "869 South Kirkland Street",
+              "address2": "Suite 101",
+              "zip": "51106",
+              "city": "Sioux City",
+              "state": "IA",
+              "country": "USA"
+            },
+            "phones": {
+              "type": "H",
+              "number": "5979563",
+              "areaCode": "712"
+            }
+          },
+          "financeDetails": {
+            "financingType": "L",
+            "ballonResidualAmount": "0",
+            "financedAmount": "24275",
+            "apr": "7",
+            "paymentAmount": "12600",
+            "numberOfPayments": "36",
+            "msrp": "25000",
+            "firstPaymentDate": "2018-10-07",
+            "leaseCapAmount": "0",
+            "period": "0",
+            "grossCapCost": "0",
+            "scheduledTerminationDate": null,
+            "monthlyPaymentAmount": "350"
+          },
+          "fillers": {
+            "key": "SEND_SIGNATURE",
+            "value": "True"
+          }
+        }
+      }
+    }
+  }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+false]]></ee:set-variable>
+				
+</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="legacyForm Var" doc:id="53532d83-5b80-4642-98a7-5dba9b5855ff" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="legacyForm" ><![CDATA[%dw 2.0
+output application/java
+
+---
+using (form = payload.Envelope.Body.getForm.arg0) {
+	urlOnly: form.urlOnly,
+	contractNumber: form.contractNumber,
+	quoteId: form.quoteId,
+	dealer: form.dealer,
+	callingApp: form.callingApp,
+	vehicle: form.vehicle,
+	product: form.*productDetails,
+	contacts: form.*contacts,
+	financeDetails: form.financeDetails,
+	filler:form.*fillers,
+	xmlInput: true
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="2916bfb3-349e-4bb8-aaf2-5eb69352a966" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="5c0e54cb-4888-4647-9854-9ef1e562a0c3" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f9410d48-d108-4cc9-9825-6a1de617b688" >
+						<ee:transform doc:name="Transform Message" doc:id="0a831892-4e02-4667-be0e-96a274622cda" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<ee:transform doc:name="Prepare Xml Response" doc:id="4e79d419-c408-4e3f-bdfb-84cd415e8401" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                       (vars.javaPayload.validationErrors mapObject errors:{ 
+             
+              key : $$,
+        message: $ 
+        
+                     })
+}
+}
+}
+}
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-equals doc:name="Assert product Class" doc:id="725eac92-f68b-4a58-87f4-50069626fbf2" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[0]]" expected="The product detail product class cannot be null, blank nor contain whitespaces only."/>
+            <munit-tools:assert-equals doc:name="Assert coverage Name" doc:id="4639aa7b-4bfc-4a78-b744-463e24146b10" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[1]]" expected="The product detail coverage name cannot be null, blank nor contain whitespaces only."/>
+       </munit:validation>
+	
+</munit:test>
+<munit:test name="financingType-Fields-Test" doc:id="41ea98d8-b4e7-45b4-9a9a-b00ae210b649" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="0fe28a50-f9a5-4803-88bb-83e68e9b5bd9" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+  "Envelope": {
+    "Header": null,
+    "Body": {
+      "getForm": {
+        "arg0": {
+          "urlOnly": "false",
+          "quoteId": "03e2a3ef-19e0-4e6f-9c6d-bf1578a18b41",
+          "callingApp": {
+            "serviceSecurity": null,
+            "appId": "ODE",
+            "persist": "false",
+            "sourceSystem": "MR",
+            "businessUnit": "WLSC"
+          },
+          "dealer": {
+            "rdgId": "0ROH0005",
+            "internalId": "0ROH0005",
+            "name": "PEN Test Dealer 1",
+            "address": {
+              "address1": "123 Street Suite 200",
+              "zip": "65847",
+              "city": "Hoffman Estates",
+              "state": "NC",
+              "country": "USA"
+            },
+            "fieldRep": "Test Name",
+            "phone": {
+              "type": "W",
+              "number": "1234568",
+              "areaCode": "847"
+            }
+          },
+          "vehicle": {
+            "type": "C",
+            "model": {
+              "code": "02565",
+              "name": "Aaccord",
+              "make": {
+                "name": "Honda"
+              }
+            },
+            "inServiceDate": "2018-08-13",
+            "odometerAtPurchase": "95",
+            "vin": "3FA6P078GR275140",
+            "vehicleClass": "F6",
+            "year": "2016",
+            "price": "24275",
+            "odometer": "95",
+            "isDiesel": "false",
+            "isFourByFour": "false",
+            "isTurbo": "false",
+            "isCar": "true",
+            "isTruck": "false",
+            "isCommercial": "false",
+            "isHybrid": "false",
+            "hasNavigation": "false",
+            "isNew": "true",
+            "maturityDate": "2021-08-13"
+          },
+          "contractNumber": null,
+          "productDetails": {
+            "id": "AWLAR550",
+            "type": "WAR",
+            "productClass": "NA",
+            "form": {
+              "type": "S",
+              "number": "RAMAOVSCNTB1216",
+              "isCombo": "false"
+            },
+            "cost": "962",
+            "deductibleAmount": "100",
+            "disappearing": "false",
+            "reducing": "false",
+            "coverageCode": "PE",
+            "coverageName": "Platinum",
+            "termMonths": "36",
+            "termMiles": "45000",
+            "systemPin": null,
+            "coveragePlan": "false",
+            "totalAllowableMilesContract": "0",
+            "numberOfService": "0"
+          },
+          "contacts": {
+            "type": "B",
+            "firstName": "Rodney",
+            "lastName": "Butler ",
+            "middleInitialName": null,
+            "email": "Rodney@Butler.com",
+            "address": {
+              "address1": "869 South Kirkland Street",
+              "address2": "Suite 101",
+              "zip": "51106",
+              "city": "Sioux City",
+              "state": "IA",
+              "country": "USA"
+            },
+            "phones": {
+              "type": "H",
+              "number": "5979563",
+              "areaCode": "712"
+            }
+          },
+          "financeDetails": {
+            "financingType": "LA",
+            "ballonResidualAmount": "0",
+            "financedAmount": "24275",
+            "apr": "7",
+            "paymentAmount": "12600",
+            "numberOfPayments": "36",
+            "msrp": "25000",
+            "firstPaymentDate": "2018-10-07",
+            "leaseCapAmount": "0",
+            "period": "0",
+            "grossCapCost": "0",
+            "scheduledTerminationDate": null,
+            "monthlyPaymentAmount": "350"
+          },
+          "fillers": {
+            "key": "SEND_SIGNATURE",
+            "value": "True"
+          }
+        }
+      }
+    }
+  }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+false]]></ee:set-variable>
+				
+</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="legacyForm Var" doc:id="0ce1fb6d-4354-4ae3-9599-6526f0d1265e" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="legacyForm" ><![CDATA[%dw 2.0
+output application/java
+
+---
+using (form = payload.Envelope.Body.getForm.arg0) {
+	urlOnly: form.urlOnly,
+	contractNumber: form.contractNumber,
+	quoteId: form.quoteId,
+	dealer: form.dealer,
+	callingApp: form.callingApp,
+	vehicle: form.vehicle,
+	product: form.*productDetails,
+	contacts: form.*contacts,
+	financeDetails: form.financeDetails,
+	filler:form.*fillers,
+	xmlInput: true
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="73ca5371-4767-44f9-befb-462c885ddbfd" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="0a4ca7c7-cb21-44c9-8bad-54ca473d0890" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="48bce6df-321c-48a0-bce4-662cecc63781" >
+						<ee:transform doc:name="Transform Message" doc:id="a7c4590d-8097-4a0c-9a0c-483227169e3d" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<ee:transform doc:name="Prepare Xml Response" doc:id="8aa126fa-d0cd-4d80-97c3-3f1d787908a6" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                       (vars.javaPayload.validationErrors mapObject errors:{ 
+             
+              key : $$,
+        message: $ 
+        
+                     })
+}
+}
+}
+}
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-equals doc:name="Assert financeType" doc:id="ac25b744-e3b6-4cb7-aaee-49c95b2d3ea5" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[0]]" expected="The finance details financing type should be one of the following values:{L,LE,C,LO,BL,F}."/>
+       </munit:validation>
+	
+</munit:test>
+<munit:test name="contact-Mandatory-Fields-Test" doc:id="84a9dd0d-a8e2-4f9c-8412-d7f9544c619d" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="59854f99-df50-4cb3-ad7e-0b8f910e0095" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+  "Envelope": {
+    "Header": null,
+    "Body": {
+      "getForm": {
+        "arg0": {
+          "urlOnly": "false",
+          "quoteId": "03e2a3ef-19e0-4e6f-9c6d-bf1578a18b41",
+          "callingApp": {
+            "serviceSecurity": null,
+            "appId": "ODE",
+            "persist": "false",
+            "sourceSystem": "MR",
+            "businessUnit": "WLSC"
+          },
+          "dealer": {
+            "rdgId": "0ROH0005",
+            "internalId": "0ROH0005",
+            "name": "PEN Test Dealer 1",
+            "address": {
+              "address1": "123 Street Suite 200",
+              "zip": "65847",
+              "city": "Hoffman Estates",
+              "state": "NC",
+              "country": "USA"
+            },
+            "fieldRep": "Test Name",
+            "phone": {
+              "type": "W",
+              "number": "1234568",
+              "areaCode": "847"
+            }
+          },
+          "vehicle": {
+            "type": "C",
+            "model": {
+              "code": "02565",
+              "name": "Aaccord",
+              "make": {
+                "name": "Honda"
+              }
+            },
+            "inServiceDate": "2018-08-13",
+            "odometerAtPurchase": "95",
+            "vin": "3FA6P078GR275140",
+            "vehicleClass": "F6",
+            "year": "2016",
+            "price": "24275",
+            "odometer": "95",
+            "isDiesel": "false",
+            "isFourByFour": "false",
+            "isTurbo": "false",
+            "isCar": "true",
+            "isTruck": "false",
+            "isCommercial": "false",
+            "isHybrid": "false",
+            "hasNavigation": "false",
+            "isNew": "true",
+            "maturityDate": "2021-08-13"
+          },
+          "contractNumber": null,
+          "productDetails": {
+            "id": "AWLAR550",
+            "type": "WAR",
+            "productClass": "NA",
+            "form": {
+              "type": "S",
+              "number": "RAMAOVSCNTB1216",
+              "isCombo": "false"
+            },
+            "cost": "962",
+            "deductibleAmount": "100",
+            "disappearing": "false",
+            "reducing": "false",
+            "coverageCode": "PE",
+            "coverageName": "Platinum",
+            "termMonths": "36",
+            "termMiles": "45000",
+            "systemPin": null,
+            "coveragePlan": "false",
+            "totalAllowableMilesContract": "0",
+            "numberOfService": "0"
+          },
+          "contacts": {
+            "type": "B",
+            "firstName": null,
+            "lastName": null,
+            "middleInitialName": null,
+            "email": "Rodney@Butler.com",
+            "address": {
+              "address1": "869 South Kirkland Street",
+              "address2": "Suite 101",
+              "zip": "51106",
+              "city": "Sioux City",
+              "state": "IA",
+              "country": "USA"
+            },
+            "phones": {
+              "type": "H",
+              "number": "5979563",
+              "areaCode": "712"
+            }
+          },
+          "financeDetails": {
+            "financingType": "L",
+            "ballonResidualAmount": "0",
+            "financedAmount": "24275",
+            "apr": "7",
+            "paymentAmount": "12600",
+            "numberOfPayments": "36",
+            "msrp": "25000",
+            "firstPaymentDate": "2018-10-07",
+            "leaseCapAmount": "0",
+            "period": "0",
+            "grossCapCost": "0",
+            "scheduledTerminationDate": null,
+            "monthlyPaymentAmount": "350"
+          },
+          "fillers": {
+            "key": "SEND_SIGNATURE",
+            "value": "True"
+          }
+        }
+      }
+    }
+  }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+false]]></ee:set-variable>
+				
+</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="legacyForm Var" doc:id="6b2d8ba3-8efa-4bc5-88dc-eec7fafa4e42" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="legacyForm" ><![CDATA[%dw 2.0
+output application/java
+
+---
+using (form = payload.Envelope.Body.getForm.arg0) {
+	urlOnly: form.urlOnly,
+	contractNumber: form.contractNumber,
+	quoteId: form.quoteId,
+	dealer: form.dealer,
+	callingApp: form.callingApp,
+	vehicle: form.vehicle,
+	product: form.*productDetails,
+	contacts: form.*contacts,
+	financeDetails: form.financeDetails,
+	filler:form.*fillers,
+	xmlInput: true
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="2bf3433c-5e2e-40fc-ab21-56776df0b0fe" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="8e542b7b-5513-402f-af30-652d28255d92" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="b04eba8a-af21-4625-a1e2-cd548d57b552" >
+						<ee:transform doc:name="Transform Message" doc:id="761a66a3-fd74-49ff-85a0-ff7768f65aed" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<ee:transform doc:name="Prepare Xml Response" doc:id="59779f07-a3ed-4834-89c9-99ffcbed0a2c" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                       (vars.javaPayload.validationErrors mapObject errors:{ 
+             
+              key : $$,
+        message: $ 
+        
+                     })
+}
+}
+}
+}
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-equals doc:name="Assert firstName" doc:id="1918ed5f-0ffb-4098-b4f1-d7567158f035" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[0]]" expected="The contact first name cannot be null, blank nor contain whitespaces only."/>
+            <munit-tools:assert-equals doc:name="Assert lastName" doc:id="9b157ffe-d04b-480b-8d2a-b2d922fe2416" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[1]]" expected="The contact last name cannot be null, blank or contain whitespaces only for non-lienholders."/>
+       </munit:validation>
+	
+</munit:test>
+</mule>

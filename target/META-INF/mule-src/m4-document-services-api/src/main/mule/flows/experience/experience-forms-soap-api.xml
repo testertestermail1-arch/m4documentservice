@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:apikit-soap="http://www.mulesoft.org/schema/mule/apikit-soap"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/apikit-soap http://www.mulesoft.org/schema/mule/apikit-soap/current/mule-apikit-soap.xsd">
+	<flow name="api-main">
+        <http:listener config-ref="httpsListenerConfig" path="${api.forms.soap.implementation.path}" outputMimeType="application/xml">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[attributes.protocolHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.errorStatusCode default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[attributes.protocolHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <set-variable value="#[payload]" doc:name="Set inputPayload" doc:id="6fd7c4c6-9d72-4673-842f-21837ec0aaa3" variableName="inputPayload" mimeType="text/plain"/>
+		<choice doc:name="inputPayload Empty Check" doc:id="13268704-9787-4fbb-a267-58722b2812d5" >
+			<when expression="#[isEmpty(vars.inputPayload)]">
+				<logger level="INFO" doc:name="Stage Logger" doc:id="21718f3d-f8ae-41d7-9dab-a688920ad2b5" message='Message Id : #[correlationId] || Empty Payload Received || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Set Original Payload" doc:id="4bb9aada-3918-4c11-8dd3-3ca625ba8644">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="originalPayload"><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="timeValue"><![CDATA[%dw 2.0
+output application/java
+---
+""]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+				<logger level="INFO" doc:name="Log Input Request" doc:id="b51ed9f6-5699-4c4f-a67f-80925cc6744c" message="#[%dw 2.0&#10;&#10;output application/java&#10;&#10;---&#10;&#10;correlationId ++ &quot;: Abstraction Forms Input Payload: \n&quot; ++ write(payload, 'application/xml',{&quot;indent&quot;:false})]" category="com.aiz.mule.rating.request" />
+			</otherwise>
+		</choice>
+		<apikit-soap:router doc:name="SOAP Router" doc:id="717682f5-f02a-43fe-8efd-65e5f0a8e449" config-ref="forms_api.soapkit-config" outputMimeType="application/xml" outputEncoding="UTF-8">
+			<apikit-soap:attributes ><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+	headers: attributes.headers,
+	method: attributes.method,
+	queryString: attributes.queryString
+}]]]></apikit-soap:attributes>
+		</apikit-soap:router>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="SOAPKIT BAD REQUEST" doc:id="85e18ad8-4acf-403c-bd5f-5774164b58bd" >
+				<ee:transform doc:name="Frame SOAP Error Response" doc:id="9b77a062-20d6-4a69-9eb1-8628e200c13a" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml encoding = "UTF-8",writeDeclaration = false, writeNilOnNull = true
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns org http://www.w3.org/2003/05/soap-envelope
+output application/xml writeDeclaration = true
+---
+soap#Envelope: {
+	soapenv#Body: {
+		soapenv#Fault @('xmlns:soap': org): {
+			faultcode: "soap:Server",
+			faultstring: error.description
+		}
+	}
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+500]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+</flow>
+	<flow name="getForm:\forms_api.soapkit-config" doc:id="0e87a6a8-feb9-4253-adae-a8a4d0f94873" >
+		<logger level="INFO" doc:name="Stage Logger" doc:id="b0f01f95-905f-4b21-a01a-f2a5f1f3fa79" message='Message Id : #[correlationId] || Request Received For Abstraction Forms Flow || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' />
+		<flow-ref doc:name="Call process-abstract-generate-forms-flow" doc:id="28d130ae-933e-48cb-898e-9102f0f71527" name="process-abstract-generate-forms-flow"/>
+		<logger level="INFO" doc:name="Stage Logger" doc:id="1df03cab-a4d9-466c-8aba-58de7da1705a" message='Message Id : #[correlationId] || Abstraction Forms  Flow Ends || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' />
+		<error-handler ref="abstract-generate-forms-global-error-handler" />
+	</flow>
+</mule>

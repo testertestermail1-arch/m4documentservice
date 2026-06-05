@@ -1,0 +1,50 @@
+#%RAML 1.0
+title: Test API
+version: v1
+baseUri: http://127.0.0.1:8081/api
+
+securitySchemes:
+  basic:
+    description: |
+      This API supports Basic Authentication.
+    type: Basic Authentication
+
+
+/forms:
+  post:
+    description: Service to create contract form from template
+    body:
+      application/json:
+        example: !include examples/form-request-example.json
+      application/xml:
+        example: !include examples/form-request-example.xml
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include examples/forms-response-example.json
+          application/xml:
+            example: !include examples/forms-response-example.xml 
+/uploadforms:
+  post:
+    body:
+      multipart/form-data:
+        
+    queryParameters: 
+      documentName:
+        description: form pdf name
+        type: string
+    responses: 
+      200:
+        body: 
+          application/json:
+            example: |
+             {
+             PreviewUrl:"https://uatna11.springcm.com/atlas/documents/preview.aspx?aid=8152&lduid=d17029f8-676e-ee11-b842-48df378a7098"
+             }  
+
+
+/invalidateCache:
+  get:
+    securedBy: [basic]
+    description: Service to check valid cache content      

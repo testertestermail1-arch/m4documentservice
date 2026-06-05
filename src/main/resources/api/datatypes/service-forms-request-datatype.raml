@@ -1,0 +1,408 @@
+#%RAML 1.0 DataType 
+type: object
+properties:
+  sourceOriginator:
+    type: string
+    required: false
+  urlOnly:
+    type: string
+    required: false
+  fileType:
+    type: string
+    required: false
+  quoteId:
+    type: string
+    required: false
+  contractNumber:
+    type: string
+    required: false
+  sendSignature:
+    type: string
+    required: false
+  stampSignature:
+    type: string
+    required: false
+  account:
+    type: object
+    required: false
+    properties:
+      accountNumber:
+        type: string
+        required: false
+      name:
+        type: string
+        required: false
+      address1:
+        type: string
+        required: false
+      address2:
+        type: string
+        required: false
+      city:
+        type: string
+        required: false
+      stateCode:
+        type: string
+        required: false
+      postalCode:
+        type: string
+        required: false
+      countryCode:
+        type: string
+        required: false
+      homePhoneNumber:
+        type: string
+        required: false
+      workPhoneNumber:
+        type: string
+        required: false
+      mobilePhoneNumber:
+        type: string
+        required: false
+  fsm:
+    type: object
+    required: false
+    properties:
+      fsmFirstName:
+        type: string
+        required: false
+      fsmLastName:
+        type: string
+        required: false
+  vehicle:
+    type: object
+    required: false
+    properties:
+      vehicleType:
+        type: string
+        required: false
+      vehicleCode:
+        type: string
+        required: false
+      model:
+        type: string
+        required: false
+      make:
+        type: string
+        required: false
+      trim:
+        type: string
+        required: false
+      inServiceDate:
+        type: string
+        required: false
+      odometer:
+        type: number | nil
+        required: false
+      VIN:
+        type: string
+        required: false
+      vehicleClass:
+        type: string
+        required: false
+      vehicleYear:
+        type: number | nil
+        required: false
+      vehiclePurchasePrice:
+        type: number | nil
+        required: false
+      fuelType:
+        type: string
+        required: false
+      driveTrain:
+        type: string
+        required: false
+      turbo:
+        type: string
+        required: false
+      supercharged:
+        type: string
+        required: false
+      commercialUsage:
+        type: string
+        required: false
+      hasNavigation:
+        type: string
+        required: false
+      vehicleNewOrUsed:
+        type: string
+        required: false
+      expirationType:
+        type: string
+        required: false
+      maturityDate:
+        type: string
+        required: false
+  product:
+    type: object
+    required: false
+    properties:
+      productCode:
+        type: string
+        required: false
+      productDetailType:
+        type: string
+        required: false
+      productClass:
+        type: string
+        required: false
+      agreementStatus:
+        type: string
+        required: false
+      effectiveDate:
+        type: string
+        required: false
+      paymentDueDay:
+        type: number | nil
+        required: false
+      expirationDate:
+        type: string
+        required: false
+      formNumber:
+        type: string
+        required: false
+      isCombo:
+        type: string
+        required: false
+      reportedCustomerCost:
+        type: number | nil
+        required: false
+      salesTax:
+        type: number | nil
+        required: false
+      deductibleBase:
+        type: number | nil
+        required: false
+      deductibleReduced:
+        type: number | nil
+        required: false
+      serviceInterval:
+        type: number | nil
+        required: false
+      numberOfServices:
+        type: number | nil
+        required: false
+      coverage:
+        type: string
+        required: false
+      termMonths:
+        type: number | nil
+        required: false
+      termDistance:
+        type: number | nil
+        required: false
+      autoRenew:
+        type: string
+        required: false
+      optionalCoverages:
+        required: false
+        type: array
+        items:
+          type: object
+          properties:
+            coverageType:
+              type: string
+              required: false
+            coverageAmount:
+              type: number | nil
+              required: false
+  holder:
+    type: object
+    required: false
+    properties:
+      memberNumber:
+        type: string
+        required: false
+      salutation:
+        type: string
+        required: false
+      customerFirstName:
+        type: string
+        required: false
+      customerMiddleName:
+        type: string
+        required: false
+      customerLastName:
+        type: string
+        required: false
+      customerAddress1:
+        type: string
+        required: false
+      customerAddress2:
+        type: string
+        required: false
+      customerCity:
+        type: string
+        required: false
+      customerStateCode:
+        type: string
+        required: false
+      customerPostalCode:
+        type: string
+        required: false
+      customerCountryCode:
+        type: string
+        required: false
+      customerHomePhoneNumber:
+        type: string
+        required: false
+      customerWorkPhoneNumber:
+        type: string
+        required: false
+      customerMobilePhoneNumber:
+        type: string
+        required: false
+      customerEveningPhoneNumber:
+        type: string
+        required: false
+      customerEmail:
+        type: string
+        required: false
+      coBuyerFirstName:
+        type: string
+        required: false
+      coBuyerMiddleName:
+        type: string
+        required: false
+      coBuyerLastName:
+        type: string
+        required: false
+      coBuyerAddress1:
+        type: string
+        required: false
+      coBuyerAddress2:
+        type: string
+        required: false
+      coBuyerCity:
+        type: string
+        required: false
+      coBuyerStateCode:
+        type: string
+        required: false
+      coBuyerPostalCode:
+        type: string
+        required: false
+      coBuyerCountryCode:
+        type: string
+        required: false
+      coBuyerHomePhoneNumber:
+        type: string
+        required: false
+      coBuyerWorkPhoneNumber:
+        type: string
+        required: false
+      coBuyerMobilePhoneNumber:
+        type: string
+        required: false
+      coBuyerEmail:
+        type: string
+        required: false
+  financing:
+    type: object
+    required: false
+    properties:
+      lienholderName:
+        type: string
+        required: false
+      lienholderAddress1:
+        type: string
+        required: false
+      lienholderAddress2:
+        type: string
+        required: false
+      lienholderCity:
+        type: string
+        required: false
+      lienholderState:
+        type: string
+        required: false
+      lienholderPostalCode:
+        type: string
+        required: false
+      lienholderPhoneNumber:
+        type: string
+        required: false
+      lienholderNumber:
+        type: string
+        required: false
+      lienholderAccountNumber:
+        type: string
+        required: false
+      financeType:
+        type: string
+        required: false
+      baloonResidualValue:
+        type: number | nil
+        required: false
+      financedAmount:
+        type: number | nil
+        required: false
+      annualPercentageRate:
+        type: number | nil
+        required: false
+      loanTotalPayment:
+        type: number | nil
+        required: false
+      financeTermMonths:
+        type: number | nil
+        required: false
+      numberOfAdvPayments:
+        type: number | nil
+        required: false
+      numberOfSkipPayments:
+        type: number | nil
+        required: false
+      msrp:
+        type: number | nil
+        required: false
+      bookValue:
+        type: number | nil
+        required: false
+      interestStartDate:
+        type: string
+        required: false
+      dateOfFirstPayment:
+        type: string
+        required: false
+      loanNumber:
+        type: string
+        required: false
+      gapIdNumber:
+        type: string
+        required: false
+      leaseCapAmount:
+        type: number | nil
+        required: false
+      period:
+        type: number | nil
+        required: false
+      startDate:
+        type: string
+        required: false
+      endDate:
+        type: string
+        required: false
+      grossCapCost:
+        type: number | nil
+        required: false
+      totalAllowableMilesContract:
+        type: number | nil
+        required: false
+      scheduledTerminationDate:
+        type: string
+        required: false
+      loanMonthlyPayment:
+        type: number | nil
+        required: false
+      installmentDownPayment:
+        type: number | nil
+        required: false
+      installmentAmount:
+        type: number | nil
+        required: false        
+      installmentPaymentTerm:
+       type: number | nil
+       required: false
+      installmentPaymentFrequency:
+        type: string
+        required: false 

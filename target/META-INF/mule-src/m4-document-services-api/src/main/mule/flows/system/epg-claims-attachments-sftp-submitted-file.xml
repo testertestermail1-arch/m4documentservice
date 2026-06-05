@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd">
+	<sub-flow name="epg-claim-attachments-sftp-file-load" doc:id="50d73461-8156-4f72-8ccd-72ba8651c1c3" >
+		<logger level="INFO" doc:name="Starting the System Layer Call - Documents Attachments Upload" doc:id="13d10696-66e0-4137-bfff-ae5b29b26376" message="EPGClaimsAttachmentsAPILogger-#[correlationId]: #[vars.claimAttachmentProperties.sourceOriginator]: Claims Attachment Submission Processing: Starting the file transfer processing" />
+		<logger level="INFO" doc:name="Ahead of Destination Log Call" doc:id="edd29efc-8f42-4a5b-9a38-fd2daa5edf65" message='#[output text/plain --- &#10;"EPGClaimsAttachmentsAPILogger-" ++ correlationId ++ ":" ++ vars.claimAttachmentProperties.sourceOriginator ++ &#10;": Claims Attachments Processing: Claim: " ++ vars.claimAttachmentProperties.claimNumber ++ ", Filename: " ++ vars.claimAttachmentProperties.fileName ++ ",File size: " &#10;++ (if ((vars.claimAttachmentProperties.fileNameExtension=="xlsx") or (vars.claimAttachmentProperties.fileNameExtension=="xls") or (vars.claimAttachmentProperties.fileNameExtension=="csv")) (sizeOf(vars.xlsxRawContent) as String) else (sizeOf(payload[0][1]) as String)) ++ " B"]' />
+		<sftp:write doc:id="a3214b64-f169-4b7b-a6bb-efafab4f497d" config-ref="epg-claims-attachments-sftp-config" path="#[vars.claimAttachmentProperties.outboundLocation ++ '/' ++ vars.claimAttachmentProperties.fileName]" createParentDirectories="false" doc:name="Write Input Attachments to GS Destination Folder">
+				<reconnect frequency="${sftp.epg.connect.retry.freq}" count="${sftp.epg.connect.retry.count}" />
+				<sftp:content><![CDATA[#[if ((vars.claimAttachmentProperties.fileNameExtension != "xlsx") and (vars.claimAttachmentProperties.fileNameExtension != "xls") and (vars.claimAttachmentProperties.fileNameExtension != "csv")) (write(payload[0][1],"application/java")) else (write(vars.xlsxRawContent as Binary,"application/java"))]]]></sftp:content>
+			</sftp:write>
+		<logger level="INFO" doc:name="File Load Successfully Completed " doc:id="e23b2ebf-2bdf-4a5b-98e4-debca6c39de3" message="EPGClaimsAttachmentsAPILogger-#[correlationId]: #[vars.claimAttachmentProperties.sourceOriginator]: Claims Attachment Submission Processing: File #[vars.claimAttachmentProperties.fileName] successfully written to the location." />
+	</sub-flow>
+</mule>

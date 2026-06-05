@@ -1,0 +1,775 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	
+	<flow name="process-generate-forms-rest-api-Flow" doc:id="24e9e620-fc0a-456a-9ba6-6bc216068939" >
+		<ee:transform doc:name="Checking Content Type" doc:id="11450dba-1f68-42ba-adb9-240b406ee440" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.'Content-Type' contains 'application/json']]></ee:set-variable>
+				<ee:set-variable variableName="source" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.queryParams.'source']]></ee:set-variable>
+				<ee:set-variable variableName="requestTimeStamp" ><![CDATA[%dw 2.0
+output application/java
+---
+now() as String]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Form Values Extraction" doc:id="757c5791-c21a-496e-ba62-80fe3decfafa" >
+			<when expression="#[vars.isPayloadTypeJSON]">
+				<logger level="DEBUG" doc:name="Payload is Json Logger" doc:id="0b061596-5fd6-4956-8ede-bc7c039a3a3d" message="correlationId: #[correlationId] ||  Payload is Json" category="com.documents.forms.api.request"/>
+				<ee:transform doc:name="Storing Required Values" doc:id="8647c1f4-9a84-49ff-81b3-896c7efc9bf6" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="firstProductForm" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.product[0].formNumber]]></ee:set-variable>
+						<ee:set-variable variableName="secondProductForm" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.product[1].formNumber]]></ee:set-variable>
+						<ee:set-variable variableName="accountNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.account.accountNumber default ""]]></ee:set-variable>
+						<ee:set-variable variableName="regenerate" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.regenerate]]></ee:set-variable>
+						<ee:set-variable variableName="hardCopyLocation" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.hardCopyLocation]]></ee:set-variable>
+						<ee:set-variable variableName="incomingPay" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+						<ee:set-variable variableName="contractNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.contractNumber default ""]]></ee:set-variable>
+						<ee:set-variable variableName="productType" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.product[0].productDetailType default ""]]></ee:set-variable>
+						<ee:set-variable variableName="specialIdList" ><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output application/java
+---
+[]]]></ee:set-variable>
+						<ee:set-variable variableName="additionalFormNumbers" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(payload.product[0].additionalFormNumbers))payload.product[0].additionalFormNumbers else []]]></ee:set-variable>
+						<ee:set-variable variableName="formNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.product[0].formNumber default ""]]></ee:set-variable>
+						<ee:set-variable variableName="incomingPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+						<ee:set-variable variableName="quoteId" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.quoteId default ""]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<choice doc:name="Checking additionalFormNumbers" doc:id="7c68de84-0e74-4705-bc5c-e90988aa7bb4" >
+					<when expression="#[sizeOf(vars.additionalFormNumbers)&gt;0]">
+						<foreach doc:name="For Each" doc:id="878bcdd6-052f-4210-8386-875d87c5f48a" collection="#[vars.additionalFormNumbers]" counterVariableName="specialIdCounter">
+							<set-variable value="#[%dw 2.0&#10;output application/java&#10;var specialIdCounter = vars.specialIdCounter - 1&#10;---&#10;(if(not isEmpty(vars.contractNumber)) vars.contractNumber else 'Quote') ++ &quot;-&quot; ++ vars.additionalFormNumbers[specialIdCounter] ++ &quot;-&quot; ++ vars.accountNumber ++ &quot;-C-&quot; ++ vars.productType ++ &quot;-1&quot;]" doc:name="Set spcId Variable" doc:id="640ccef6-fabe-46a4-a6c3-e597eb4fdc59" variableName="spcId"/>
+							<ee:transform doc:name="Framing SpecialIdList" doc:id="ffc01fb6-924c-48ff-a98a-06d6b3742d0b" >
+								<ee:message >
+								</ee:message>
+								<ee:variables >
+									<ee:set-variable variableName="specialIdList" ><![CDATA[%dw 2.0
+output application/java
+--- 
+vars.specialIdList ++ ([vars.spcId])]]></ee:set-variable>
+								</ee:variables>
+							</ee:transform>
+						</foreach>
+					</when>
+					<otherwise >
+						<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;(if(not isEmpty(vars.contractNumber)) vars.contractNumber else 'Quote') ++ &quot;-&quot; ++ vars.formNumber ++ &quot;-&quot; ++ vars.accountNumber ++ &quot;-C-&quot; ++ vars.productType ++ &quot;-1&quot;]" doc:name="Set specialId Variable" doc:id="24c915a9-2557-4d51-b353-32f46e257560" variableName="specialId"/>
+			
+</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Store Vars" doc:id="cf55dbd5-e648-4226-9455-6c813be9b589">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="incomingPayload"><![CDATA[%dw 2.0
+output application/xml
+---
+payload]]></ee:set-variable>
+						<ee:set-variable variableName="specialId" ><![CDATA[%dw 2.0
+output application/java
+---
+(if(not isEmpty(payload.Envelope.Body.getForm.arg0.contractNumber))payload.Envelope.Body.getForm.arg0.contractNumber else 'Quote') ++ '-' ++ payload.Envelope.Body.getForm.arg0.productDetails.form.number ++ '-' ++ payload.Envelope.Body.getForm.arg0.dealer.internalId ++ '-C-' ++ payload.Envelope.Body.getForm.arg0.productDetails.'type' ++ '-1']]></ee:set-variable>
+						<ee:set-variable variableName="incomingPay" ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+						<ee:set-variable variableName="secondProductForm" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.Envelope.Body.getForm.arg0.*productDetails[1].form.number]]></ee:set-variable>
+						<ee:set-variable variableName="firstProductForm" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.Envelope.Body.getForm.arg0.*productDetails[0].form.number]]></ee:set-variable>
+						<ee:set-variable variableName="apiRequest" ><![CDATA[%dw 2.0
+output application/xml
+---
+payload]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="DEBUG" doc:name="Payload is XML Logger" doc:id="81bd0a99-db32-4c3d-a0dc-c20911a6c4ba" message="correlationId: #[correlationId] ||  Payload is XML" category="com.documents.forms.api.request"/>
+			</otherwise>
+		</choice>
+		<set-payload value="#[vars.incomingPayload]" doc:name="Set Payload" doc:id="1604c44b-a35e-4b85-ba44-c21382b2a5d0" />
+		<flow-ref doc:name="process-generate-forms-api-Flow" doc:id="8e3c1523-e212-4c80-90c4-90300e3987a0" name="process-generate-forms-api-Flow"/>
+	</flow>
+	<flow name="process-generate-forms-api-Flow" doc:id="ad1eae30-9551-458c-a24a-3524debdb850" >
+		<ee:transform doc:name="Storing Required Values" doc:id="1d9a2b40-a50e-42c0-b719-9df7893d9828" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="formsMessageId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="source" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.queryParams.source]]></ee:set-variable>
+				<ee:set-variable variableName="vehicleCode" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.vehicle.vehicleCode]]></ee:set-variable>
+				<ee:set-variable variableName="vehicleYear" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.vehicle.vehicleYear]]></ee:set-variable>
+				<ee:set-variable variableName="vehicleType" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.vehicle.vehicleType]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="system-salesforce-pga-account-lookup-flow" doc:id="3daf07f5-a492-4905-941b-fb2c6e6b2ec3" name="system-salesforce-pga-account-lookup-flow"/>
+		<choice doc:name="QR Code Stamp Check" doc:id="7b754d64-d9a1-4052-93eb-1beaa771cfd3" >
+			<when expression="#[vars.pgaFlag]">
+				<logger level="INFO" doc:name="QR Enabled Logger" doc:id="f983c0dc-2f1a-4446-a061-2ab1f21ac23b" message="MessageId: #[correlationId] || QR Enabled"/>
+				<flow-ref doc:name="system-QR-code-flow" doc:id="3b0d969a-bf84-45eb-81ed-7960304aac36" name="system-QR-code-flow" target="qrCode" targetValue="#[payload.qrCodeUrl]"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Skip QR Logger" doc:id="edd09758-1a9c-4508-8e0e-4c1074c2fdb1" message="MessageId: #[correlationId] || QR Disabled || skipped PGA QR Code API"/>
+			</otherwise>
+		</choice>
+		<flow-ref doc:name="process-glowServices-getFactoryWarranty-Flow" doc:id="bde1a04d-33b9-4088-8459-68a1d5550ba3" name="process-glowServices-getFactoryWarranty-Flow"/>
+		<choice doc:name="is Request JSON format?" doc:id="85302d7d-8789-45d3-be3b-78386d13af62" >
+			<when expression="#[vars.isPayloadTypeJSON]">
+				<set-variable value="#[payload.sendSignature]" doc:name="Set sendSignature Variable" doc:id="9118861c-02cb-455d-b9c3-f9ed8c3e4c67" variableName="sendSignature"/>
+				<flow-ref doc:name="process-generate-forms-handle-json-request-flow" doc:id="6d9ae206-e0ca-4608-9c0a-6ce29c4e7bc8" name="process-generate-forms-handle-json-request-flow"/>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Call process-xmlRequest-flow" doc:id="304f8bf8-f0b8-48ee-9371-629cbe7f879c" name="process-xmlRequest-flow"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<sub-flow name="process-generate-forms-handle-json-request-flow" doc:id="b63e78e0-b484-4630-8bd0-d2aff80e60c7" >
+		<ee:transform doc:name="Storing Required Values" doc:id="9da1b01a-e9a7-4c0e-a2b0-2bf0b6f350d1" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="formNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.product[0].formNumber]]></ee:set-variable>
+				<ee:set-variable variableName="countryCode" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.account.countryCode]]></ee:set-variable>
+				<ee:set-variable variableName="coverage" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.product[0].coverage]]></ee:set-variable>
+				<ee:set-variable variableName="splitCoverageForExpirationType" ><![CDATA[%dw 2.0
+import * from dw::core::Strings				
+output application/java
+---
+if(payload.product[0].coverage contains 'incl')(substringBefore(payload.product[0].coverage, "incl")) else payload.product[0].coverage]]></ee:set-variable>
+				<ee:set-variable variableName="deductibleBase" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.product[0].deductible]]></ee:set-variable>
+				<ee:set-variable variableName="deductibleReduced" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.product[0].reducedDeductible]]></ee:set-variable>
+				<ee:set-variable variableName="additionalFormNumbers" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(payload.product[0].additionalFormNumbers))payload.product[0].additionalFormNumbers else []]]></ee:set-variable>
+				<ee:set-variable variableName="expirationTypeList" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;if ((vars.countryCode == 'US') or (vars.countryCode == null) or (vars.countryCode == &quot;&quot;) or (vars.countryCode == &quot;null&quot;)) 'USA'  else vars.countryCode]" doc:name="Update countryCode" doc:id="d1595598-9f70-4b41-9550-b2b75f63b9f0" variableName="updatedCountryCode"/>
+		<choice doc:name="additionalFormNumbers Check" doc:id="4b203603-150a-48b8-b49e-84d77913a430" >
+			<when expression="#[sizeOf(vars.additionalFormNumbers)&gt;0]">
+				<foreach doc:name="For Each" doc:id="b128bd82-341b-4e4d-a981-70952d465338" collection="#[vars.additionalFormNumbers]" counterVariableName="formNumbersCounter">
+					<set-variable value="#[vars.additionalFormNumbers[(vars.formNumbersCounter)-1]]" doc:name="Set formNumber Variable" doc:id="f32c62c8-0145-4f85-aaa6-a2ef2b23e7d3" variableName="formNumber"/>
+					<flow-ref doc:name="system-internal-listener-expirationType-DB-flow" doc:id="05df75c0-d8dd-422d-9716-774f6706b222" name="system-internal-listener-expirationType-DB-flow" target="expirationType"/>
+					<ee:transform doc:name="Framing expirationTypeList" doc:id="5dfd22bd-660f-4d92-978a-11bc2cf675a6">
+						<ee:message>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="expirationTypeList" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.expirationTypeList ++ ([vars.expirationType])]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</foreach>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="system-internal-listener-expirationType-DB-flow" doc:id="08e9886a-54bb-4b41-a1ef-f32c0066f2d1" name="system-internal-listener-expirationType-DB-flow" target="expirationType"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform XML" doc:id="df432cff-967a-41b9-b443-4f6e21a6d2ed" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="compFormNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.fillers default []) filter ($.key== "COMPFORMID") map {
+value: $.value
+}
+]]></ee:set-variable>
+				<ee:set-variable variableName="bunFormNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.fillers default []) filter ($.key== "BUNFORMID") map {
+value: $.value
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Expiration Type Logger" doc:id="08f4ee88-4b85-4f8d-8b20-07f44660f2df" message="MessageId: #[correlationId] || Expiration Type for  #[vars.splitCoverageForExpirationType] = #[vars.expirationType]"/>
+		<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;payload]" doc:name="Set newForm Variable" doc:id="25232861-a808-4593-a472-7819dd551cdf" variableName="newForm"/>
+		<ee:transform doc:name="Set-Key-Details" doc:id="8e120f82-6683-44d5-a9b2-e35074e2d8b3">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="productType" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.'newForm'.product[0])) vars.'newForm'.product[0].productDetailType else null]]></ee:set-variable>
+				<ee:set-variable variableName="formNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+if((not isEmpty(vars.compFormNumber)) and (not isEmpty(vars.compFormNumber[0].value)))vars.compFormNumber[0].value else if ((not isEmpty(vars.bunFormNumber)) and (not isEmpty(vars.bunFormNumber[0].value))) vars.bunFormNumber[0].value else if (not isEmpty(vars.'newForm'.product[0] !=null))vars.'newForm'.product[0].formNumber else null]]></ee:set-variable>
+				<ee:set-variable variableName="contractNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.'newForm'.contractNumber default ""]]></ee:set-variable>
+				<ee:set-variable variableName="quoteId" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.'newForm'.quoteId]]></ee:set-variable>
+				<ee:set-variable variableName="stampSignature" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.'newForm'.stampSignature]]></ee:set-variable>
+				<ee:set-variable variableName="formsListPayload" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+				<ee:set-variable variableName="templateURLList" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="Request JSON has been transformed to Contract Form Logger" doc:id="02f94927-2090-4520-8772-02fcf1d0bb8a" message="MessageId: #[correlationId] || Request JSON has been transformed to Contract Form || #[vars.formNumber] | Contract Number = #[vars.contractNumber] | Quote ID = #[vars.quoteId]]" category="com.documents.forms.api.request"/>
+		<logger level="INFO" doc:name=" Before Get Template URL Logger" doc:id="427156bb-c8b2-4bc8-b27f-f7ca0fc95d5e" message=" MessageId: #[correlationId] || Before Get Template URL"/>
+		<choice doc:name="additionalFormNumbers Check" doc:id="c1cf1abd-c44f-48bc-bbaa-84aac0d9e1fc" >
+			<when expression="#[sizeOf(vars.additionalFormNumbers)&gt;0]">
+				<foreach doc:name="For Each" doc:id="986d44c9-3472-43ee-9eb7-022e2c29ea46" collection="#[vars.additionalFormNumbers]" counterVariableName="templateURLCounter">
+					<set-variable value="#[%dw 2.0&#10;output application/java&#10;var templateURLCounter=vars.templateURLCounter - 1&#10;---&#10;vars.additionalFormNumbers[templateURLCounter]]" doc:name="Set formNumber Variable" doc:id="88e10b9c-b8ee-4d64-b657-27093691e326" variableName="formNumber"/>
+					<flow-ref doc:name="process-generate-forms-rest-get-template-url-flow" doc:id="b15b1449-19cd-43b4-a6fb-f78e7a5d8911" name="process-generate-forms-rest-get-template-url-flow"/>
+					<ee:transform doc:name="Framing SpringCMTemplateID" doc:id="8b422999-2885-452a-a545-66dec2f26666" >
+						<ee:message >
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="templateURLList" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.templateURLList ++ [vars.SpringCMTemplateID]]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</foreach>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="process-generate-forms-rest-get-template-url-flow" doc:id="7b10fd9f-bded-4800-bf1c-ea1a7ff90e47" name="process-generate-forms-rest-get-template-url-flow"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="After Get Template URL Logger" doc:id="99abdb25-ca55-4820-9266-a21e7028dd2f" message="MessageId: #[correlationId] || After Get Template URL"/>
+		<logger level="INFO" doc:name=" Before Template Download Logger" doc:id="c8052093-0485-49a5-a427-f64bf6584de2" message="MessageId: #[correlationId] ||  Before Template Download"/>
+		<choice doc:name="additionalFormNumbers Check" doc:id="187acd1a-dd8b-41a7-acd9-7806da4755d7">
+			<when expression="#[sizeOf(vars.additionalFormNumbers)&gt;0]">
+				<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;[]]" doc:name="Set templatePDFList Variable" doc:id="1ee27626-5975-4255-879a-8c679b63a484" variableName="templatePDFList"/>
+				<foreach doc:name="For Each" doc:id="31111da1-cec2-4e96-ad3e-19a5a231094a" collection="#[vars.additionalFormNumbers]" counterVariableName="pdfCounter">
+					<set-variable value="#[%dw 2.0&#10;output application/java&#10;var pdfCounter = vars.pdfCounter-1&#10;---&#10;vars.templateURLList[pdfCounter]]" doc:name="Set templateURLList Variable" doc:id="4a3f55cb-198a-43e2-b543-5a77b289811e" variableName="SpringCMTemplateID"/>
+					<flow-ref doc:name="process-generate-forms-rest-api-download-template-flow" doc:id="aa48c424-dd70-447a-84bc-44b550e6a9e9" name="process-generate-forms-rest-api-download-template-flow" target="pdf" targetValue="#[payload.pdfResponse]"/>
+					<ee:transform doc:name="Framing templatePDFList" doc:id="fd552494-53c0-48cf-bbee-f4002a7a3af9">
+						<ee:message>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="templatePDFList" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.templatePDFList ++ [vars.pdf]]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</foreach>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="process-generate-forms-rest-api-download-template-flow" doc:id="2eb90ceb-e5e1-42ac-b411-4f00567e50ca" name="process-generate-forms-rest-api-download-template-flow" target="pdf" targetValue="#[payload.pdfResponse]"/>
+			</otherwise>
+		</choice>
+		<flow-ref doc:name="process-create-forms-api-Flow" doc:id="6789511d-5b48-4796-adea-7eb18fb52495" name="process-create-forms-api-Flow"/>
+	</sub-flow>
+	<sub-flow name="process-generate-forms-rest-get-template-url-flow" doc:id="225e5409-8e69-492a-bca1-7d33e05f2954" >
+		<ee:transform doc:name="Transform Message" doc:id="37181cbe-f39c-4cae-ad50-f78b5d019b96" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="incomingPayload" ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="sendSignature" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.sendSignature))(upper(vars.sendSignature)) else 'FALSE']]></ee:set-variable>
+				<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.stampSignature))(upper(vars.stampSignature)) else 'FALSE']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Enabled Signature?" doc:id="e2f0b1c8-21d3-4799-8ece-8a662d928952" >
+			<when expression="#[vars.sendSignature == 'TRUE']">
+				<flow-ref doc:name="system-glowServices-getSignCordinate-Flow" doc:id="c7bdbbbb-8a41-471f-9af0-70d9a7372329" name="system-glowServices-getSignCordinate-Flow"/>
+				<choice doc:name="StampSignature Required ?" doc:id="7bc38267-61dc-4cfa-906a-d64cc651fd59" >
+					<when expression="#[vars.stampSignatureVar == 'TRUE']">
+						<flow-ref doc:name="system-glowServices-getSignCordinate-Flow" doc:id="e4de50cb-c2fc-42cd-81ef-2baec733a1b0" name="system-glowServices-getSignCordinate-Flow"/>
+						<set-payload value="#[vars.signCoordinates]" doc:name="Set signCoordinates Payload" doc:id="bf6acb21-1d48-43fa-911a-232a4eac7001" />
+						<ee:transform doc:name="Set Customer Sign Values" doc:id="ea41dffa-c907-4f2e-ad07-208153f0cd14" >
+							<ee:message >
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="customerValues" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.signature filter ($.'type' == "CustomerSignature")) map ({
+		customerX : $.x as Number as String {format: "#"},
+		customerY : $.y as Number as String {format: "#"},
+		customerxBound: $.xbound as Number as String {format: "#"},
+		customeryBound: $.ybound as Number as String {format: "#"},
+		customerPageNumber : $.pageNumber as String {format: "#"}
+}) default []]]></ee:set-variable>
+								<ee:set-variable variableName="dealerValues" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.signature filter ($.'type' == "DealerSignature")) map ({
+		dealerX : $.x as Number as String {format: "#"},
+		dealerY : $.y as Number as String {format: "#"},
+		dealerxBound: $.xbound as Number as String {format: "#"},
+		dealeryBound: $.ybound as Number as String {format: "#"},
+		dealerPageNumber : $.pageNumber as String {format: "#"}
+}) default []]]></ee:set-variable>
+								<ee:set-variable variableName="coBuyerValues" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.signature filter ($.'type' == "CoBuyerSignature")) map ({
+		coBuyerX : $.x as Number as String {format: "#"},
+		coBuyerY : $.y as Number as String {format: "#"},
+		coBuyerxBound: $.xbound as Number as String {format: "#"},
+		coBuyeryBound: $.ybound as Number as String {format: "#"},
+		coBuyerPageNumber : $.pageNumber as String {format: "#"}
+}) default []]]></ee:set-variable>
+								<ee:set-variable variableName="coBuyerInitialsValues" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.signature filter ($.'type' == "CoBuyerInitials")) map ({
+		coBuyerInitialsX : $.x as Number as String {format: "#"},
+		coBuyerInitialsY : $.y as Number as String {format: "#"},
+		coBuyerInitialsxBound: $.xbound as Number as String {format: "#"},
+		coBuyerInitialsyBound: $.ybound as Number as String {format: "#"},
+		coBuyerInitialsPageNumber : $.pageNumber as String {format: "#"}
+}) default []]]></ee:set-variable>
+								<ee:set-variable variableName="dealerInitialsValues" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.signature filter ($.'type' == "DealerInitials")) map ({
+		dealerInitialsX : $.x as Number as String {format: "#"},
+		dealerInitialsY : $.y as Number as String {format: "#"},
+		dealerInitialsxBound: $.xbound as Number as String {format: "#"},
+		dealerInitialsyBound: $.ybound as Number as String {format: "#"},
+		dealerInitialsPageNumber : $.pageNumber as String {format: "#"}
+}) default []]]></ee:set-variable>
+								<ee:set-variable variableName="customerInitialsValues" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.signature filter ($.'type' == "CustomerInitials")) map ({
+		customerInitialsX : $.x as Number as String {format: "#"},
+		customerInitialsY : $.y as Number as String {format: "#"},
+		customerInitialsxBound: $.xbound as Number as String {format: "#"},
+		customerInitialsyBound: $.ybound as Number as String {format: "#"},
+		customerInitialsPageNumber : $.pageNumber as String {format: "#"}
+}) default []]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<logger level="INFO" doc:name="StampSignature Is False Logger" doc:id="85cfb54a-a96f-4ed0-81b5-f127a6734387" message="MessageId: #[correlationId] || StampSignature Is False"/>
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Signature Coordinates Is Disabled Logger" doc:id="87cd438c-b1b0-4711-84ad-8099188f32e1" message="MessageId: #[correlationId] || skipped get signature call as Signature Coordinates Is Disabled"/>
+			</otherwise>
+		</choice>
+		<set-payload value="#[vars.formNumber]" doc:name="Set formNumber Payload" doc:id="086f8a7e-bcf4-42c0-a13e-7372eae96e87" />
+		<choice doc:name="Checking for MEX " doc:id="1f799c92-cdcc-44e4-adec-23673bedd494" >
+			<when expression='#[vars.countryCode == "MEX"]'>
+				<flow-ref doc:name="system-glowServices-getTemplateUrl-Flow" doc:id="94c6a8c4-eeab-4908-bd19-70e71879e20e" name="system-glowServices-getTemplateUrl-Flow"/>
+				<set-variable value='#[%dw 2.0&#10;&#10;output application/json&#10;&#10;var template_URL_with_COV = (vars.templateURLPayload filter ($.Form_Number__c == vars.formNumber and $.Coverage_Plan__c == vars.coverage))&#10;&#10;var template_URL_without_COV =(vars.templateURLPayload filter ($.Form_Number__c == vars.formNumber and ($.Coverage_Plan__c == "" or $.Coverage_Plan__c == null)))&#10;&#10;---&#10;&#10;if (template_URL_with_COV != []) template_URL_with_COV.Template_URL__c[0] else template_URL_without_COV.Template_URL__c[0]]' doc:name="Set templateURL Variable" doc:id="2f564f0c-5286-4738-96a0-bf0f3a95e6cc" variableName="templateURL"/>
+				<choice doc:name="Check For TemplateUrl" doc:id="0c552054-2179-4ce5-8bd5-f401686c6682" >
+					<when expression="#[not isEmpty(vars.templateURL)]">
+						<ee:transform doc:name="Setting Payload" doc:id="7f11c7ee-6b13-49fd-9656-fbde159a0df1" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+fun queryParameters(url) = url splitBy "&"
+---
+queryParameters(vars.templateURL) map (if ((upper($) startsWith("LDUID="))
+
+or (upper($) startsWith "ID=")
+
+or (upper($) startsWith "UID=")) {
+
+templateId : (upper($) replace "LDUID=" with ""
+
+replace "ID=" with ""
+
+replace "UID=" with ""
+
+)
+
+} else null
+
+)]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<raise-error doc:name="Raise error" doc:id="3fb32c50-7475-4234-96b6-231d83fdd6d2" description="Template URL is null" type="CUS_BAD:REQUEST"/>
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Stage Logger" doc:id="71ad1292-890f-4e51-8f42-70f32cc6002c" message='MessageId: #[correlationId] || Before Cache Scope || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+				<ee:cache doc:name="Cache" doc:id="9fae36ed-a11f-4974-b253-6a4722d408f1" cachingStrategy-ref="Template_URL_Caching_Strategy">
+					<flow-ref doc:name="system-glowServices-getTemplateUrl-Flow" doc:id="a7f6c138-ea67-4dd8-9624-630bd22984e5" name="system-glowServices-getTemplateUrl-Flow" />
+					<choice doc:name="Check For TemplateUrl" doc:id="4b76ed26-b77b-4bc0-9688-d76b5857f06f" >
+						<when expression="#[not isEmpty(vars.templateURL)]">
+							<set-variable value="#[vars.templateURL]" doc:name="Set templateURL Variable" doc:id="024f5c8d-98e9-4ef1-aedd-cae4e46738c8" variableName="templateURL"/>
+							<ee:transform doc:name="Setting Payload" doc:id="ef054089-b8e7-4673-a74f-09fdf10a83b8" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+fun queryParameters(url) = url splitBy "&"
+---
+queryParameters(vars.templateURL) map (if ((upper($) startsWith("LDUID="))
+
+or (upper($) startsWith "ID=")
+
+or (upper($) startsWith "UID=")) {
+
+templateId : (upper($) replace "LDUID=" with ""
+
+replace "ID=" with ""
+
+replace "UID=" with ""
+
+)
+
+} else null
+
+)]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</when>
+						<otherwise >
+							<logger level="INFO" doc:name="Stage Logger" doc:id="2af746ad-ab80-4f4c-8ac5-a8f1299b4d72" message="MessageId: #[correlationId] || Template URL is null"/>
+							<raise-error doc:name="Raise error" doc:id="822a26a0-c53e-469f-a43c-b7498b9cbf32" type="CUS_BAD:REQUEST" description="Template URL is null"/>
+						</otherwise>
+					</choice>
+					<logger level="INFO" doc:name="Stage Logger" doc:id="949776e0-8d78-46eb-96fb-403c9852081b" message='MessageId: #[correlationId] || Inside Cache Scope : #[vars.templateURL] || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+				</ee:cache>
+				<logger level="INFO" doc:name="Stage Logger" doc:id="68e58342-c69b-4f7b-baf0-6551a30ca541" message='MessageId: #[correlationId] || After Cache Scope || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+			</otherwise>
+		</choice>
+		<set-variable value="#[payload[0].templateId]" doc:name="Set SpringCMTemplateID Variable" doc:id="6bdaaaa6-6d3d-4e19-97cf-b89cdba5c920" variableName="SpringCMTemplateID"/>
+		<set-payload value="#[vars.incomingPayload]" doc:name="Set incomingPayload as Payload" doc:id="479b1702-125a-4f04-ba68-70cf5e9f2a88" />
+	</sub-flow>
+	<sub-flow name="process-generate-forms-rest-api-download-template-flow" doc:id="3e522db9-6268-4156-94f7-f50212ace31c" >
+		<set-variable value="#[vars.contractNumber ++ '||' ++ correlationId]" doc:name="Set formapiID Variable" doc:id="92a73d6e-07d5-4643-81ea-82c07e08ba6c" variableName="formApiId"/>
+		<flow-ref doc:name="process-springCm-authetication-api-Flow" doc:id="b688aa89-a3ca-422a-bfa5-c6989e0c9370" name="process-springCm-authetication-api-Flow"/>
+		<ee:transform doc:name="Set-Document-Download-Host-and-Path" doc:id="fb2d9c5a-f3b3-4282-8ae0-9882ea0275b2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	downloadDocumentHost: p('document.download.api.implementation.host'),
+	downloadDocumentPath:(p('docusign.document.download.api.implementation.path') ++ '/' ++ vars.SpringCMTemplateID),
+	documentId: vars.SpringCMTemplateID
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="bc7b1361-5d56-4380-afd5-3c51b44286c0" message="Download payload#[payload]"/>
+		<flow-ref doc:name="system-springCM-download-template-flow" doc:id="f91bbbaf-58d2-401e-8593-d82a69ed1fb1" name="system-springCM-download-template-flow"/>
+	</sub-flow>
+	<sub-flow name="process-xmlRequest-flow" doc:id="79ff13f5-9e5f-4f38-a798-8eff4ff7ef56" >
+		<ee:transform doc:name="Deductible Amount format change" doc:id="77585549-9dbb-4ab1-8874-bebffde1a053" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+
+---
+payload update {
+  case user at .Envelope.Body.getForm.arg0 -> user update {
+    case .productDetails.deductibleAmount -> if(!isEmpty(user.productDetails.deductibleAmount)) (user.productDetails.deductibleAmount ) as Number as String {format: "#"} else ""
+  }
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="productDetails" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.Envelope.Body.getForm.arg0.productDetails]]></ee:set-variable>
+				<ee:set-variable variableName="countryCode" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.Envelope.Body.getForm.arg0.dealer.address.country]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Store Required Vars" doc:id="83d7e662-06b2-4269-9667-a29a4a22b5f7" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="formNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.productDetails.form.number]]></ee:set-variable>
+				<ee:set-variable variableName="coverage" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.productDetails.coverageName]]></ee:set-variable>
+<ee:set-variable variableName="deductibleBase" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.productDetails.deductibleAmount]]></ee:set-variable>
+<ee:set-variable variableName="deductibleReduced" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.productDetails.reducingAmount]]></ee:set-variable>
+<ee:set-variable variableName="compFormNumber" ><![CDATA[%dw 2.0
+output application/java
+var fillers =payload.Envelope.Body.getForm.arg0.fillers
+---
+if (fillers.key == 'COMPFORMID') (fillers.value)  else null]]></ee:set-variable>
+<ee:set-variable variableName="bunFormNumber" ><![CDATA[%dw 2.0
+output application/java
+var fillers =payload.Envelope.Body.getForm.arg0.fillers
+---
+if (fillers.key == 'BUNFORMID') (fillers.value)  else null]]></ee:set-variable>
+<ee:set-variable variableName="productType" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.productDetails.'type']]></ee:set-variable>
+<ee:set-variable variableName="splitCoverageForExpirationType" ><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output application/java
+---
+if(vars.productDetails.coverageName contains('incl'))  
+substringBefore(vars.productDetails.coverageName,'incl') else vars.productDetails.coverageName]]></ee:set-variable>
+				<ee:set-variable variableName="additionalFormNumbers" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+				<ee:set-variable variableName="phoneNumbers" ><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://schemas.xmlsoap.org/soap/envelope/
+ns ns1 http://webservice.forms.twg.com/
+---
+{(using (form = payload.ns0#Envelope.Body.getForm.arg0) 
+form.*contacts map (value, index) -> { 
+	
+(phone1:value.*phones) if value.'type'=='B',
+(phone2:value.*phones) if value.'type'=='CB',
+(phone3:value.*phones) if value.'type'=='L'
+  }
+)}]]></ee:set-variable>
+				<ee:set-variable variableName="legacyForm" ><![CDATA[%dw 2.0
+output application/java
+ns ns0 http://schemas.xmlsoap.org/soap/envelope/
+ns ns1 http://webservice.forms.twg.com/
+---
+using (form = payload.ns0#Envelope.Body.getForm.arg0) {
+	urlOnly: form.urlOnly,
+	contractNumber: form.contractNumber,
+	quoteId: form.quoteId,
+	dealer: form.dealer,
+	callingApp: form.callingApp,
+	vehicle: form.vehicle,
+	product: form.*productDetails,
+	contacts: form.*contacts,
+	financeDetails: form.financeDetails,
+	filler:form.*fillers,
+	xmlInput: true
+}]]></ee:set-variable>
+<ee:set-variable variableName="stampSignFlag" ><![CDATA[%dw 2.0
+output application/java
+ns env http://schemas.xmlsoap.org/soap/envelope/
+ns twg http://webservice.forms.twg.com/
+---
+{
+	stampSign:if ((sizeOf((payload.Envelope.Body.getForm.arg0.*fillers default []) filter(((upper($.key) == "STAMP_SIGNATURE") and ((upper($.value)) == "TRUE")))) > 0)) true  else false
+}]]></ee:set-variable>
+<ee:set-variable variableName="fillerFlag" ><![CDATA[%dw 2.0
+output application/java
+ns env http://schemas.xmlsoap.org/soap/envelope/
+ns twg http://webservice.forms.twg.com/
+---
+{
+	filler: if ((sizeOf((payload.Envelope.Body.getForm.arg0.*fillers default []) filter(((upper($.key) == "SEND_SIGNATURE") and ((upper($.value)) == "TRUE")))) > 0)) true  else false
+}]]></ee:set-variable>
+				<ee:set-variable variableName="updatedCountryCode" ><![CDATA[%dw 2.0
+output application/java
+var countryCode = vars.countryCode
+---
+ if (countryCode == 'US') 'USA' else countryCode]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="splitCoverageForExpirationType Var" doc:id="8460aaf1-6cc2-4fbf-a90d-d13648714576" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="splitCoverageForExpirationType" ><![CDATA[%dw 2.0
+output application/java
+---
+if(vars.productType == 'PPM')
+(
+if((vars.splitCoverageForExpirationType splitBy('-'))[1] != null and ((vars.splitCoverageForExpirationType splitBy('-'))[2] != null)) 
+(trim ((vars.splitCoverageForExpirationType splitBy('-'))[1]))
+
+else if ((vars.splitCoverageForExpirationType splitBy('-')[0]) != null) 
+trim (((vars.splitCoverageForExpirationType splitBy('-'))[0]))
+
+else vars.splitCoverageForExpirationType
+)
+else if(vars.productType == 'WT')
+(
+   if ((vars.splitCoverageForExpirationType contains 'MSRP') and (vars.splitCoverageForExpirationType splitBy 'MSRP') [0] != null)
+   (trim ((vars.splitCoverageForExpirationType splitBy('MSRP'))[0]))  else (vars.splitCoverageForExpirationType) 
+)
+else if(vars.productType == 'GAP')(
+    if ((vars.splitCoverageForExpirationType contains '\$') and (vars.splitCoverageForExpirationType splitBy '\$')[0] != null)'Standard GAP'  else (vars.splitCoverageForExpirationType) 
+)
+else vars.splitCoverageForExpirationType]]></ee:set-variable>
+				<ee:set-variable variableName="deductibleBase" ><![CDATA[%dw 2.0
+output application/java
+---
+if(vars.productType == 'PPM') '0' else vars.deductibleBase]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="system-internal-listener-expirationType-DB-flow" doc:id="5c653d26-bee7-4528-9f84-4675185b2545" name="system-internal-listener-expirationType-DB-flow" target="expirationType"/>
+		<ee:transform doc:name="Frame Vars" doc:id="f67b6943-41c3-4aa3-b02a-0be6daacebc5" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				
+				<ee:set-variable variableName="phoneB" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.phoneNumbers.phone1]]></ee:set-variable>
+<ee:set-variable variableName="phoneCB" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.phoneNumbers.phone2]]></ee:set-variable>
+<ee:set-variable variableName="phoneL" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.phoneNumbers.phone3]]></ee:set-variable>
+<ee:set-variable variableName="sendSignature" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.fillerFlag.filler]]></ee:set-variable>
+				<ee:set-variable variableName="formNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.compFormNumber)) vars.compFormNumber
+else if(not isEmpty(vars.bunFormNumber)) vars.bunFormNumber
+else if (vars.legacyForm.product != null) vars.legacyForm.product[0].form.'number' 
+else null]]></ee:set-variable>
+				<ee:set-variable variableName="quoteId" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.legacyForm.quoteId]]></ee:set-variable>
+				<ee:set-variable variableName="contractNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.legacyForm.contractNumber default 'null']]></ee:set-variable>
+				<ee:set-variable variableName="stampSignature" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.stampSignFlag.stampSign]]></ee:set-variable>
+				
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Call process-generate-forms-rest-get-template-url-flow" doc:id="33c96be2-1873-424d-a482-accbd00dcf0d" name="process-generate-forms-rest-get-template-url-flow"/>
+		<flow-ref doc:name="Call process-generate-forms-rest-api-download-template-flow" doc:id="6714c461-a365-47e3-bd15-f3197c17cd20" name="process-generate-forms-rest-api-download-template-flow" target="pdf" targetValue="#[payload.pdfResponse]"/>
+		<flow-ref doc:name="Call process-create-forms-api-Flows" doc:id="fd3fdb5d-9f0d-4ec2-8304-ebee9873d4b7" name="process-create-forms-api-Flow"/>
+	</sub-flow>
+</mule>
+

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="process-springCm-hardCopyLocation-apiFlow" doc:id="1a736b25-6947-4579-8e5c-74633588a208" >
+		<http:listener doc:name="Listener" doc:id="d36f3b20-24c5-4ae6-b5a5-d037fe7a9b4c" config-ref="httpsListenerConfig" path="/hardCopyLocation"/>
+		<ee:transform doc:name="Transform Message" doc:id="729f44d5-cdb9-4f3d-9ac9-54d63cf1a16f" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="contractNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.contractNumber]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="c4f68aee-5137-43f6-9085-92833b650ba1" name="process-springCm-hardCopyLocation-api-Flow"/>
+	</flow>
+	<sub-flow name="process-springCm-hardCopyLocation-api-Flow" doc:id="1d09551d-b74c-4eb2-9f05-1bf37113d6d7" >
+		<choice doc:name="hardCopyLocation check?" doc:id="8006623c-9dcd-42dd-9f59-3be6cff0f2c1">
+			<when expression="#[not isEmpty(vars.hardCopyLocation)]">
+				<logger level="INFO" doc:name="HardCopyLocation Needed Logger" doc:id="1d737491-3840-48b1-8d09-b7824c7a8726" message="HardCopyLocation Needed Logger"/>
+				<set-variable value="#[p('document.authentication.parent.hardCopyFolderId.url')]" doc:name="Set hardCopyPartentUrl Variable" doc:id="514a893e-3960-423e-9941-e857d85cea7e" variableName="hardCopyPartentUrl"/>
+				<flow-ref doc:name="process-springCm-authetication-api-Flow" doc:id="e8644946-fc5b-48e0-b7b9-951a373573ec" name="process-springCm-authetication-api-Flow"/>
+				<flow-ref doc:name="process-springcm-hardCopyLocation-folder-creation-flow" doc:id="7f85bed9-bba2-4e45-ba73-76e3e4e51d06" name="process-springcm-hardCopyLocation-folder-creation-flow" target="testFileName"/>
+				<choice doc:name="Choice" doc:id="36f3cc8e-e2cc-4165-b07b-313dcdd30113">
+					<when expression='#[vars.pdfData == "true"]'>
+						<logger level="INFO" doc:name="Logger" doc:id="711aa75b-8131-47d2-8a3c-565eeb98ded7" message="Already in pdf format"/>
+						<ee:transform doc:name="Transform Message" doc:id="4934fd72-2a25-4b3f-b72c-ebddbc74e890" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output multipart/form-data
+---
+vars.hardCopyPayload]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="varTokenAcessKey" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.authTokenVar.token_type ++ ' ' ++ vars.authTokenVar.access_token]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Convert to pdf" doc:id="5f76397e-6421-444e-85f1-bcd5d9401c78">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output application/PDF with binary
+var generatedPDF = vars.attachment
+---
+fromBase64(generatedPDF as String) as Binary]]></ee:set-payload>
+							</ee:message>
+							<ee:variables>
+								<ee:set-variable variableName="varTokenAcessKey"><![CDATA[%dw 2.0
+output application/java
+---
+vars.authTokenVar.token_type ++ ' ' ++ vars.authTokenVar.access_token]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</otherwise>
+				</choice>
+				<flow-ref doc:name="system-springCM-upload-document-flow" doc:id="58f029d1-c066-4be1-88cd-e17c7613ab25" name="system-springCM-upload-document-flow" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Not HardCopyLocation Needed Logger" doc:id="1bc718e2-1fe1-4202-9bbb-f36f8af1eadf" message="Not HardCopyLocation Needed Logger"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="process-springcm-hardCopyLocation-folder-creation-flow" doc:id="7d31995a-3379-4b28-9492-5d34f6e7278a" >
+		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{   "Name": vars.hardCopyLocation,   &#10;    "ParentFolder": {       &#10;    "Href":  vars.hardCopyPartentUrl &#10;    } }]' doc:name="Set Payload" doc:id="3b0e2b73-4f01-4f2a-9e2c-816b4a1e7841" />
+		<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;vars.authTokenVar.token_type ++ ' ' ++ vars.authTokenVar.access_token]" doc:name="Set varTokenAcessKey Variable" doc:id="7b5dc153-4c85-4c1b-90cd-d503013fe754" variableName="varTokenAcessKey"/>
+		<logger level="INFO" doc:name="Before Create hardCopyLocation request for SpringCM Logger" doc:id="ef3a5812-c07f-4624-a5a6-78e6bf21eec1" message="Before Create hardCopyLocation request for SpringCM : #[payload]"/>
+		<flow-ref doc:name="system-springCm-api-create-monthly-folder-Flow" doc:id="adef23ed-a318-4ebb-a788-557b7ec19959" name="system-springCm-api-create-monthly-folder-Flow"/>
+		<logger level="INFO" doc:name=" After create hardcopy folder Logger" doc:id="f3555086-a54f-49d7-b96f-61f73eec03c3" message=" After create hardcopy folder"/>
+		<set-variable value="#[attributes.headers.'Content-Encoding']" doc:name="Set encodingVar Variable" doc:id="b63ffae2-06da-403a-9619-cc1b9946cb6e" variableName="encodingVar"/>
+        <choice doc:name="is gzip Encoding ?" doc:id="30939444-ba7f-4984-89a2-c5c186405620" >
+			<when expression="#[vars.encodingVar == 'gzip']">
+				<ee:transform doc:name="Setting Payload" doc:id="dbb948f8-6341-42cf-a16e-70b52fa34efd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						<ee:set-attributes ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"MULE_ENCODING": "UTF-8"
+}]]></ee:set-attributes>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="statusVar" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.statusCode]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise>
+			<ee:transform doc:name="Setting Payload" doc:id="880eec47-ab62-41fd-ae2a-4f4ac1cdf3e4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						<ee:set-attributes ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"MULE_ENCODING": "UTF-8"
+}]]></ee:set-attributes>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="statusVar" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.statusCode]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+        <choice doc:name="Does Folder already exist?" doc:id="c1867e97-3a3d-41ba-8a0b-bcf5bfb185d7" >
+			<when expression="#[!(vars.statusVar==422) or (vars.statusVar==201) or (vars.statusVar==200)]">
+				<logger level="INFO" doc:name="Inside Success Logger For Monthly Folder Creation" doc:id="cc263279-bec2-4cd8-921d-5e7f5253babe" message="Message Id : #[correlationId] || Inside Success Logger For Monthly Folder Creation"/>
+				<ee:transform doc:name="Setting Payload" doc:id="d9a4ec3e-2f06-4465-8635-95390085bb6e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						<ee:set-attributes ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"MULE_ENCODING": "UTF-16"
+}]]></ee:set-attributes>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[payload.BrowseDocumentsUrl]" doc:name="Setting monFolderUrl Variable" doc:id="f36597e3-6c9c-4997-b097-c53d8ba0b7d8" variableName="monFolderUrl"/>
+			
+</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Inside Failure Logger For Monthly Folder Creation" doc:id="73575d07-479d-4d7a-98fb-5fce6c9870cc" message="Message Id : #[correlationId] || Inside Failure Logger For Monthly Folder Creation"/>
+				<ee:transform doc:name="Set Vars" doc:id="1da3b897-7657-48b7-8bca-e99bed9d83e2">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="parentUrlFilter"><![CDATA[%dw 2.0
+output application/java
+---
+p('document.authentication.parent.hardCopyFolderId.url')]]></ee:set-variable>
+				<ee:set-variable variableName="folderName" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.monthVar]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+				<flow-ref doc:name="system-springCM-get-hardCopy-folderId-flow" doc:id="4f17da11-39c3-454a-aeeb-f7169c2a9ccb" name="system-springCM-get-hardCopy-folderId-flow"/>
+				<set-variable value="#[payload.browserUrl]" doc:name="Set monFolderUrl Variable" doc:id="d7db6bc4-9385-4b6b-ace4-4d6238769ac7" variableName="monFolderUrl"/>
+			
+</otherwise>
+		</choice>
+		<set-payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;(vars.monFolderUrl splitBy '/')[7]]" doc:name="Set Payload" doc:id="066cf0ff-e7ba-4dbc-97d4-7ded26050873" />
+        	
+
+</sub-flow>
+</mule>

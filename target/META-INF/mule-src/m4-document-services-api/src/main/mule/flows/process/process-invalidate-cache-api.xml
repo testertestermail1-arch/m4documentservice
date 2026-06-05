@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="process-invalidate-cache-apiFlow" doc:id="0143d115-ef76-481f-9e2f-4e7ee21d8b58" >
+		<logger level="INFO" doc:name="Stage Logger" doc:id="88a3417f-07a0-424b-b02e-7ecd0cfe87b3" message="MessageId: #[correlationId] - Before Invalidate Cache"/>
+		<ee:invalidate-cache doc:name="Invalidate Cache" doc:id="338ae220-3b5d-4ed3-8d39-356ff7eda284" cachingStrategy-ref="Caching_Private_key_object_store_Strategy"/>
+		<logger level="INFO" doc:name="Stage Logger" doc:id="b9b7156c-7815-43f4-9ffb-b61d3850e4bf" message="MessageId: #[correlationId] - After Invalidate Cache"/>
+	</sub-flow>
+</mule>

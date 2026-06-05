@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="process-create-forms-api-Flow" doc:id="022cd222-4e15-4913-a1fb-3e103909bcd7">
+	<choice doc:name="additionalFormNumbers Check" doc:id="b2547878-5933-4976-ab2e-c901950c98c2" >
+			<when expression="#[sizeOf(vars.additionalFormNumbers)&gt;0]">
+				<ee:transform doc:name="Initializing Variable List" doc:id="370e2dd1-a175-44ee-85cf-065c0b7563da" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="filledPDFList" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+						<ee:set-variable variableName="formFileNameList" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+						<ee:set-variable variableName="validationErrorsList" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<foreach doc:name="For Each" doc:id="3cb0f5eb-4d3b-440f-8f17-73d8731001b3" collection="#[vars.additionalFormNumbers]" counterVariableName="filledPDFCounter">
+					<ee:transform doc:name="Setting Payloads And variables" doc:id="afffcd7b-67bd-41b6-837a-b423888f2542" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+vars.newForm]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="specialId" ><![CDATA[%dw 2.0
+output application/java
+var filledPDFCounter = vars.filledPDFCounter - 1
+---
+vars.specialIdList[filledPDFCounter]]]></ee:set-variable>
+							<ee:set-variable variableName="formNumber" ><![CDATA[%dw 2.0
+output application/java
+var filledPDFCounter = vars.filledPDFCounter - 1
+---
+vars.additionalFormNumbers[filledPDFCounter]]]></ee:set-variable>
+							<ee:set-variable variableName="expirationType" ><![CDATA[%dw 2.0
+output application/java
+var filledPDFCounter = vars.filledPDFCounter - 1
+---
+vars.expirationTypeList[filledPDFCounter]]]></ee:set-variable>
+							<ee:set-variable variableName="SpringCMTemplateID" ><![CDATA[%dw 2.0
+output application/java
+var filledPDFCounter = vars.filledPDFCounter - 1
+---
+vars.templateURLList[filledPDFCounter]]]></ee:set-variable>
+							<ee:set-variable variableName="pdf" ><![CDATA[%dw 2.0
+output application/java
+var filledPDFCounter = vars.filledPDFCounter - 1
+---
+vars.templatePDFList[filledPDFCounter]]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<set-payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;payload update {&#10;    case .product -&gt; $ map ((item) -&gt; item  update {&#10;            case .formNumber -&gt; vars.formNumber&#10;      })&#10;}]" doc:name="Set Payload" doc:id="335b33ff-9fd8-4170-9e11-8a93a2a6ab59" />
+					<flow-ref doc:name="system-create-form-flow" doc:id="43d62e12-d321-4c6d-acab-6eb4f046aba8" name="system-create-form-flow" />
+					<ee:transform doc:name="Framing The Responses From Java Class" doc:id="f4992ade-b207-4b26-b486-f0a287626787">
+						<ee:message>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="filledPDFList" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.filledPDFList ++ [vars.javaPayload.InputByteArrayStream]]]></ee:set-variable>
+							<ee:set-variable variableName="formFileNameList" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.formFileNameList ++ [vars.javaPayload.formFileName]]]></ee:set-variable>
+							<ee:set-variable variableName="validationErrorsList" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.validationErrorsList ++ [vars.javaPayload.validationErrors]]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</foreach>
+			</when>
+			<otherwise >
+				<set-payload value="#[vars.newForm]" doc:name="Set Payload" doc:id="b525cd30-3d7c-4796-b911-ee96c18c964d" mimeType="application/java"/>
+				<flow-ref doc:name="system-create-form-flow" doc:id="aba6c942-ba57-4a0b-8a4a-e687f91c0fb6" name="system-create-form-flow" />
+			</otherwise>
+		</choice>
+		<choice doc:name="Error Check" doc:id="13226626-7827-4fd5-8917-af997700ccde">
+			<when expression="#[not isEmpty(vars.javaPayload.validationErrors)]">
+				<logger level="INFO" doc:name="Error Occured" doc:id="f734ab3a-1051-43b5-8324-8bf1b0dd39dd" message="#[correlationId] - Error Occured in java component"/>
+				<choice doc:name="IsJsonRequest" doc:id="b68bedfe-1732-479f-ba07-f9d513af5998" >
+					<when expression="#[vars.isPayloadTypeJSON == true]">
+						<ee:transform doc:name="JSON Failure Payload" doc:id="614e420a-17aa-4757-8db5-e77caacaa9ff">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+
+---
+{
+    "status": "Failure",
+    "errors":  vars.javaPayload.validationErrors pluck({ 
+     key : $$,
+     message: $ 
+      })
+}]]></ee:set-payload>
+					</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+							</ee:variables>
+				</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="XML Failure Payload" doc:id="b20986cd-1f7b-4e48-afd8-427ccbd7b8ad" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                       (vars.javaPayload.validationErrors mapObject errors:{ 
+             
+              key : $$,
+        message: $ 
+        
+                     })
+}
+}
+}
+}
+}]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</otherwise>
+				</choice>
+				<raise-error doc:name="Java Validation Failure" doc:id="7d03e4eb-ef4e-40e1-a2dd-c2c8225fee90" type="CUS_JAVA:ERROR" />
+			
+
+</when>
+			<otherwise>
+				<logger level="INFO" doc:name="No Java error" doc:id="1bce7d2a-2efc-401c-af04-00fc19af01ad" message="#[correlationId] - No Java error" />
+				<choice doc:name="additionalFormNumbers Check" doc:id="2fed94d5-ff75-4134-8d3b-19adb4176764" >
+					<when expression="#[sizeOf(vars.additionalFormNumbers)&gt;0]">
+						<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;[]]" doc:name="Set generatedPDFList Variable" doc:id="fe757214-ecda-4097-9414-29bde8222a1c" variableName="generatedPDFList"/>
+						<foreach doc:name="For Each" doc:id="0b2f8345-5937-4a1d-b689-22d30e4042f8" collection="#[vars.additionalFormNumbers]" counterVariableName="generatedPDFCounter">
+							<ee:transform doc:name="Generated PDF List" doc:id="11fed564-838c-4a8e-ba95-2d6b764bf2da">
+							<ee:message>
+							</ee:message>
+							<ee:variables>
+								<ee:set-variable variableName="generatedPDF"><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output text/plain
+var generatedPDFCounter = vars.generatedPDFCounter - 1
+var filledPdf = vars.filledPDFList[generatedPDFCounter]
+---
+toBase64(filledPdf as Binary)]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+							<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;vars.generatedPDFList ++ ([vars.generatedPDF as String])]" doc:name="Set generatedPDFList Variable" doc:id="544d91f7-aa19-43a4-bf65-848a7a9d3611" variableName="generatedPDFList"/>
+						</foreach>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Generated PDF List" doc:id="b6664642-9446-499b-a35d-c8bbd0d29807" >
+							<ee:message >
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="generatedPDF" ><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output text/plain
+---
+toBase64(vars.javaPayload.InputByteArrayStream as Binary)]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</otherwise>
+				</choice>
+				<flow-ref doc:name="process-after-create-forms-api-flow" doc:id="c07e752c-639f-4eb2-b958-574cd1e6004c" name="process-after-create-forms-api-flow"/>
+			
+
+</otherwise>
+		</choice>
+	
+	</sub-flow>
+	<sub-flow name="process-after-create-forms-api-flow" doc:id="291c3c02-46b2-4c7b-bb41-9d0323b650b3" >
+		<ee:transform doc:name="Key-value pair" doc:id="9093f3fc-deda-4004-b99b-0514542c72d7" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="sourceChcek" ><![CDATA[%dw 2.0
+output application/java
+---
+if(not isEmpty(vars.source))(upper(vars.source)) else '']]></ee:set-variable>
+				<ee:set-variable variableName="formsUserList" ><![CDATA[%dw 2.0
+output application/java
+---
+p('formsUserList')]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Source Check" doc:id="9cf9a78e-7e24-4e96-9a37-53be27c78350" >
+			<when expression="#[vars.formsUserList contains (';' ++ vars.sourceChcek ++ ';')]">
+				<logger level="INFO" doc:name="User is Formuser Logger" doc:id="cb915140-8cad-4dda-a6d3-b978f0ec3a9d" message="MessageId: #[correlationId] || User is Formuser"/>
+				<flow-ref doc:name="process-forms-upload-document-flow" doc:id="f4d98af8-e14c-46da-823f-7144c08e5039" name="process-forms-upload-document-flow"/>
+				<choice doc:name="Request Type is Json" doc:id="951b3764-39a4-43b5-b1ef-8919c27b1996">
+                    <when expression="#[vars.isPayloadTypeJSON]">
+                <choice doc:name="Check for additionalFormNumber" doc:id="22703347-821e-401b-97d6-9ec2c32cd23d">
+                    <when expression="#[sizeOf(vars.additionalFormNumbers)&gt;0]">
+                        <ee:transform doc:name="Framing Success Responses for Additional FormNumbers" doc:id="add78ba2-fb2c-4488-9c91-cda015565485">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status:"Success",
+	pdfs: vars.additionalFormNumbers map ((formNumber, indexOfFormNumber) -> {
+		(signatures:if(vars.signCoordinates.signature != [])vars.signCoordinates  else '') if(upper(vars.sendSignature == 'TRUE')),
+		"type":vars.productType,
+		url:payload[indexOfFormNumber].url,
+		formNumber: formNumber,
+		issuedDate:(now() >> "UTC") as String {format: "uuuu-MM-dd'T'HH:mm:ss.SSS"} ++ "Z"
+	})
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+                    </when>
+                    <otherwise>
+                        <ee:transform doc:name="Framing Success Responses for Single FormNumber" doc:id="769e5eda-87ed-4866-805a-8a47d45e8d3d">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+                           
+                                         status:"Success",
+                                                pdfs: [{
+                                                       (signatures:if(vars.signCoordinates.signature != []) vars.signCoordinates else '') if( upper(vars.sendSignature == 'TRUE')),    
+                                                       "type":vars.productType,
+                                                       url:payload[0].url,
+                                                       formNumber:vars.formNumber,
+                                                       issuedDate: (now() >> "UTC") as String {format: "uuuu-MM-dd'T'HH:mm:ss.SSS"} ++ "Z"
+                                                }]
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+                    </otherwise>
+                </choice>
+            </when>
+            <otherwise>
+                <ee:transform doc:name="Framing Success Responses for xml" doc:id="c9254b91-73cf-4504-9a19-854b8c845578">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "false"
+},
+                                                pdfs: {
+                                                       "type":vars.productType,
+                                                       url:payload[0].url,
+                                                       number:vars.formNumber,
+                                                       issued:(now() >> "UTC") as String {format: "uuuu-MM-dd'T'HH:mm:ss.SSS"} ++ "Z",
+                                                       (signatures: if(vars.signCoordinates !=null)({
+															(vars.signCoordinates.signature map {
+																signature: {
+																name: $.name,
+																"type": $."type",
+																x : $.x,
+																y: $.y,
+																xbound: $.xbound,
+																ybound: $.ybound,
+																pageNumber: $.pageNumber
+															}})
+														})  else 'null') if((upper(vars.sendSignature)) == 'TRUE')
+                                                } 
+                                                }
+                                                }
+                                                }
+                                                }
+                                                
+                                                ]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+                </choice>
+				<choice doc:name="Contract Number Check ?" doc:id="096b34eb-e293-48ae-89ea-22f33031534d" >
+					<when expression="#[!isEmpty(vars.contractNumber)]">
+						<async doc:name="Async" doc:id="03d374f4-6063-4af9-9f36-a397faaaafda">
+					<flow-ref doc:name="Call process-Glow-DB-logging-subFlow " doc:id="f8b4946b-b1af-44e8-ae35-f5cd7e0aeec6" name="process-Glow-DB-logging-subFlow" />
+				</async>
+					</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Skip DB  Logging" doc:id="9270492d-5115-40a2-af6a-894afd6e55bf" message='Message Id : #[correlationId] || Skip DB  Logging ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+					</otherwise>
+				</choice>
+				
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="User is non Formuser Logger" doc:id="abe15342-9e9c-4fc2-8b22-fcf072179baf" message="MessageId: #[correlationId]  || User is non Formuser"/>
+				<choice doc:name="Contract API Call Check" doc:id="c1adc274-a59a-477e-90bc-81cf3288e734" >
+					<when expression="#[vars.sourceChcek == 'CONTRACTAPI']">
+						<logger level="INFO" doc:name="Skip Upload Forms To SpringCM Logger" doc:id="90ac4ef7-9285-42fe-95fe-94c6ac249387" message="MessageId: #[correlationId] - Skip Upload Forms To SpringCM as call from contract API"/>
+					<ee:transform doc:name="Success Response" doc:id="b84f31bb-94e1-439e-966b-704dd9f53173" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+                           
+                                         status:"Success",
+                                                pdfs: [{
+                                                       (signatures:if(vars.signCoordinates.signature != []) vars.signCoordinates else '') if( upper(vars.sendSignature == 'TRUE')),    
+                                                       "type":vars.productType,
+                                                       pdf:vars.generatedPDF,
+                                                       formNumber:vars.formNumber,
+                                                       issuedDate: (now() >> "UTC") as String {format: "uuuu-MM-dd'T'HH:mm:ss.SSS"} ++ "Z"
+                                                }]
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Non-Glow Users Logger" doc:id="b27babac-560a-4994-91e4-b3b0a0417a35" message="MessageId: #[correlationId] || Non-Glow Users"/>
+						<async doc:name="Async" doc:id="75e0f6c9-0ac6-4240-9d79-6474d92e9e70" >
+                            <flow-ref doc:name="process-forms-upload-document-flow" doc:id="639ec8f0-9718-410f-9a7e-aa09e8ec5ea9" name="process-forms-upload-document-flow"/>
+                            <choice doc:name="Is PayloadType Json?" doc:id="61b2296e-2c55-4d71-ad1b-05f8befea429" >
+                                <when expression="#[vars.isPayloadTypeJSON]">
+                                    <logger level="INFO" doc:name="Content Type is Json Logger" doc:id="6b5900a4-7699-4ec0-b68d-2fea037fb1cc" message="MessageId: #[correlationId]  || Content Type is Json so set json response payload"/>
+                                    <ee:transform doc:name="Setting Payload" doc:id="109a005a-8adf-44a5-9a79-a4d9b4664e6c" >
+                                        <ee:message >
+                                            <ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.incomingPayload]]></ee:set-payload>
+                                        </ee:message>
+                                        <ee:variables >
+											<ee:set-variable variableName="URL" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.url reduce ($$ ++ $)]]></ee:set-variable>
+                                        </ee:variables>
+                                    </ee:transform>
+                                </when>
+                                <otherwise >
+                                    <logger level="INFO" doc:name="Content Type is Xml Logger" doc:id="dba0085c-d26e-4276-be25-ddeb6cce4b03" message="MessageId: #[correlationId] || Content Type is Xml so extract URL for response payload"/>
+									<ee:transform doc:name="Extract URL" doc:id="3d634e0b-ef81-4c2b-8a08-3cce00be0634" >
+										<ee:message >
+										</ee:message>
+										<ee:variables >
+											<ee:set-variable variableName="URL" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.url reduce ($$ ++ $)]]></ee:set-variable>
+										</ee:variables>
+									</ee:transform>
+                                </otherwise>
+                            </choice>
+                            <flow-ref doc:name="process-logger-db-Form-api-flow" doc:id="c9ddee42-55ef-4f4f-8c0e-2cc0d36ea623" name="process-logger-db-Form-api-flow" />
+                            <choice doc:name="secondForm Exists?" doc:id="216b4379-7c75-4843-a42b-9e9c2b15758b" >
+                                <when expression="#[(not isEmpty(vars.secondProductForm))  and (not isEmpty(vars.URL))]">
+									<set-variable value="#[vars.specialId replace vars.firstProductForm with vars.secondProductForm]" doc:name="Set specialId Variable" doc:id="7cf7286d-a5df-4771-a396-c87d29f34572" variableName="specialId"/>
+                                    <flow-ref doc:name="process-logger-db-Form-api-flow" doc:id="fdc53e64-ff55-443c-844c-f0b00c5409e5" name="process-logger-db-Form-api-flow"/>
+                                </when>
+                                <otherwise >
+                                    <logger level="INFO" doc:name="No Second Form Logger" doc:id="81712642-1842-4653-a54a-ffc1b33da367" message="MessageId: #[correlationId] || No Second Form"/>
+                                </otherwise>
+                            </choice>
+                        </async>
+					
+						<choice doc:name="Request Type is Json" doc:id="9efe8743-e8f2-4aa1-9154-339bdff644d9">
+                    <when expression="#[vars.isPayloadTypeJSON]">
+                <choice doc:name="Check for additionalFormNumber" doc:id="7e6308b0-3dcc-43f8-9d78-ec6a896a00c2">
+                    <when expression="#[sizeOf(vars.additionalFormNumbers)&gt;0]">
+                        <ee:transform doc:name="Framing Success Responses for Additional FormNumbers" doc:id="9921bf20-05a8-4dd7-88a3-dbae24b0914b">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    status:"Success",
+    pdfs: vars.additionalFormNumbers map ((formNumber, indexOfFormNumber) -> {
+        (signatures:if(vars.signCoordinates.signature != [])vars.signCoordinates  else '') if(upper(vars.sendSignature == 'TRUE')),
+        "type":vars.productType,
+        url:vars.generatedPDFList[indexOfFormNumber],
+        formNumber: formNumber,
+        issuedDate: (now() >> "UTC") as String {format: "uuuu-MM-dd'T'HH:mm:ss.SSS"} ++ "Z"
+    })
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+                    </when>
+                    <otherwise>
+                        <ee:transform doc:name="Framing Success Responses for Single FormNumbers" doc:id="a556e067-53aa-412a-840c-7cca1c0aa73e">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+                           
+                                         status:"Success",
+                                                pdfs: [{
+                                                       (signatures:if(vars.signCoordinates.signature != []) vars.signCoordinates else '') if( upper(vars.sendSignature == 'TRUE')),    
+                                                       "type":vars.productType,
+                                                       pdf:vars.generatedPDF,
+                                                       formNumber:vars.formNumber,
+                                                       issuedDate: (now() >> "UTC") as String {format: "uuuu-MM-dd'T'HH:mm:ss.SSS"} ++ "Z"
+                                                }]
+}]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+                    </otherwise>
+                </choice>
+            </when>
+            <otherwise>
+                <ee:transform doc:name="Framing Success Responses for xml" doc:id="4457b2e5-aa49-48c2-956d-8319c89d2efc">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "false"
+},
+                                                pdfs: {
+                                                       "type":vars.productType,
+                                                       pdf:vars.generatedPDF,
+                                                       number:vars.formNumber,
+                                                       issued:(now() >> "UTC") as String {format: "uuuu-MM-dd'T'HH:mm:ss.SSS"} ++ "Z",
+                                                       (signatures: if(vars.signCoordinates !=null)({
+															(vars.signCoordinates.signature map {
+																signature: {
+																name: $.name,
+																"type": $."type",
+																x : $.x,
+																y: $.y,
+																xbound: $.xbound,
+																ybound: $.ybound,
+																pageNumber: $.pageNumber
+															}})
+														})  else 'null') if((upper(vars.sendSignature)) == 'TRUE')
+                                                }
+                                                
+                                                }
+                                                }
+                                                }
+                                                }
+                                                
+                                                ]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+                </choice>
+					</otherwise>
+				</choice>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="process-Glow-DB-logging-subFlow" doc:id="99cbb48b-c331-432b-b6f4-af10448375c2" >
+		  <choice doc:name="Is PayloadType Json?" doc:id="24ea6443-0abf-49dc-91f1-7b61fa2b7b23" >
+                                <when expression="#[vars.isPayloadTypeJSON]">
+                                    <logger level="INFO" doc:name="Content Type is Json Logger" doc:id="0a7c7f99-ac40-4f14-bef0-6de15834477b" message="Content Type is Json"/>
+                                    <ee:transform doc:name="Setting Payload" doc:id="378bae5d-815f-43d9-8958-a03af4b61a85" >
+                                        <ee:message >
+                                            <ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.incomingPayload]]></ee:set-payload>
+                                        </ee:message>
+                                        <ee:variables >
+											<ee:set-variable variableName="URL" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.pdfs[0].url ]]></ee:set-variable>
+                                        </ee:variables>
+                                    </ee:transform>
+                                </when>
+                                <otherwise >
+                                    <logger level="INFO" doc:name="Content Type is Xml Logger" doc:id="f99766f3-32e5-4351-b5af-7085d0e02258" message="Content Type is Xml"/>
+									<ee:transform doc:name="Extract URL" doc:id="1925acef-c45b-4ff8-b63e-c144b3227504" >
+										<ee:message >
+										</ee:message>
+										<ee:variables >
+											<ee:set-variable variableName="URL" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.Envelope.Body.getFormResponse.return.*pdfs.url  reduce ($$ ++ $)]]></ee:set-variable>
+										</ee:variables>
+									</ee:transform>
+                                </otherwise>
+                            </choice>
+                            <flow-ref doc:name="process-logger-db-Form-api-flow" doc:id="133698f3-3ab5-4b35-948d-41ed3bb12a08" name="process-logger-db-Form-api-flow" />
+                            <choice doc:name="secondForm Exists?" doc:id="5e494a8e-8464-4d70-9d90-91a19ef65230" >
+                                <when expression="#[(not isEmpty(vars.secondProductForm))  and (not isEmpty(vars.URL))]">
+									<set-variable value="#[vars.specialId replace vars.firstProductForm with vars.secondProductForm]" doc:name="Set specialId Variable" doc:id="ee00df6b-cbfd-4869-8d69-d775293f8adc" variableName="specialId"/>
+                                    <flow-ref doc:name="process-logger-db-Form-api-flow" doc:id="23626518-7ec8-410c-85d0-fc68793fa3a4" name="process-logger-db-Form-api-flow"/>
+                                </when>
+                                <otherwise >
+                                    <logger level="INFO" doc:name="No Second Form Logger" doc:id="5e9d3c3e-6abe-42e6-88b8-bd2e91553277" message="No Second Form"/>
+                                </otherwise>
+                            </choice>
+	</sub-flow>
+</mule>
+

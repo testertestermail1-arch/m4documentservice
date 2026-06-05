@@ -1,0 +1,84 @@
+{
+  "configs": [
+    "flows/process/process-logger-db-api.xml",
+    "flows/process/process-abstract-generate-forms-api.xml",
+    "flows/system/system-get-cerdentials.xml",
+    "flows/experience/experience-forms-template-api.xml",
+    "flows/system/system-QR-code-api.xml",
+    "flows/experience/experience-forms-soap-api.xml",
+    "flows/system/system-glowServices-api.xml",
+    "flows/process/process-generate-forms-rest-api.xml",
+    "flows/system/system-expirationType-api.xml",
+    "flows/experience/experience-forms-api.xml",
+    "flows/process/process-invalidate-cache-api.xml",
+    "flows/experience/experience-forms-services-healthCheck-api.xml",
+    "flows/process/process-service-forms-api.xml",
+    "common.xml",
+    "flows/experience/experience-forms-internal-services-api.xml",
+    "flows/process/process-glowServices-api.xml",
+    "global-config.xml",
+    "flows/system/system-liveness-check-api.xml",
+    "flows/process/process-qcert-create-forms-api.xml",
+    "flows/system/system-azureDB-services-api.xml",
+    "flows/process/process-create-forms-api.xml",
+    "flows/experience/experience-forms-internal-api.xml",
+    "flows/system/system-createForm-api.xml",
+    "flows/experience/experience-forms-services-liveness-check.xml",
+    "flows/process/process-forms-template-api.xml",
+    "flows/system/system-db-api.xml",
+    "flows/process/process-springCm-api.xml",
+    "flows/system/epg-claims-attachments-sftp-submitted-file.xml",
+    "flows/experience/epg-claims-attachments-api.xml",
+    "flows/process/proccess-service-forms-validation-api.xml",
+    "flows/process/process-springCm-hardCopyLocation-api.xml",
+    "flows/process/process-qcert-forms-api.xml",
+    "flows/system/system-springCm-api.xml"
+  ],
+  "secureProperties": [
+    "anypoint.platform.client_secret",
+    "ssl.keystore.password",
+    "db.integration.logger.mssql.password",
+    "sfdc.password",
+    "springcm.authentication.api.client_secret",
+    "qr.code.implementation.key",
+    "sftp.epg.auth.password",
+    "azure.keyvault.clientsecret"
+  ],
+  "supportedJavaVersions": [],
+  "redeploymentEnabled": true,
+  "name": "com.aiz.mule:m4-document-services-api:1.0.85-SNAPSHOT",
+  "minMuleVersion": "4.6.14",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedResources": [
+        "beans.xml",
+        "api/wsdl/uat.forms.thewarrantygroup.com.wsdl",
+        "dwl/modules/common_used/common_used_400_bad_request_error_payload.dwl",
+        "dwl/modules/common_used/common_used_404_request_not_found_error_payload.dwl",
+        "dwl/modules/common_used/common_used_405_method_not_allowed_error_payload.dwl",
+        "dwl/modules/common_used/common_used_406_not_acceptable_error_payload.dwl",
+        "dwl/modules/common_used/common_used_415_unsupported_media_type_error_payload.dwl",
+        "dwl/modules/common_used/common_used_501_not_implemented_error_payload.dwl",
+        "dwl/modules/common_used/common_used_any_error_type_payload.dwl",
+        "dwl/modules/common_used/common_used_validation_error_payload.dwl",
+        "dwl/transformations/epg_claims_attachments_api/epg-claims-attachments-set-attachment-input-payload.dwl",
+        "dwl/transformations/epg_claims_attachments_api/epg-claims-attachments-set-attachment-input-properties.dwl",
+        "dwl/transformations/epg_claims_attachments_api/epg-claims-attachments-set-attachment-output-success-response.dwl",
+        "dwl/transformations/epg_claims_attachments_api/epg-claims-attachments-set-attachment-raw-content.dwl",
+        "dwl/transformations/epg_claims_attachments_api/epg-claims-attachments-set-generic-errored-payload.dwl",
+        "dwl/transformations/epg_claims_attachments_api/epg-claims-attachments-set-sftp-errored-payload.dwl"
+      ],
+      "exportedPackages": [
+        "com.twg.api.experience_forms_api",
+        "com.aon.awg",
+        "com.twg.api.service_forms.validation"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}

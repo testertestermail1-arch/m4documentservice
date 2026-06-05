@@ -1,0 +1,25 @@
+{
+  "vehicle": [
+        {
+      "stockNumber": "7437A",
+      "vin": "1C3BC2FB0BN537207",
+      "dealerName": "DEMONSTRATIONS",
+      "printAddress": "YES",
+      "dealerSlogan": "ADD YOUR SLOGAN HERE",
+      "priceLabel": "FINAL PRICE",
+      "deductibleAmount": "50",
+      "buyersGuideId": "",
+      "printPrice": "YES",
+      "platinumMonths": "300",
+      "platinumMiles": "200",
+      "termMonths": "25",
+      "termMiles":"5000",
+      "addOnMileage":"true"
+    }
+  ],
+  "dealerWebSite": "www.demonstration.com",
+  "dealerNumber": "GLOWTEST",
+  "stickerName": "BuyersGuide,VehicleTitle,VehicleDetails,VehicleBrochure,BuyersGuideSpanish",
+  "dealerAddress":"6-1-99, Chicago,  Unites State."
+} 
+ 

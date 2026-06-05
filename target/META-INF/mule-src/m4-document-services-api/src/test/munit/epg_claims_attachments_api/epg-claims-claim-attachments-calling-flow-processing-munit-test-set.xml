@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="epg-claims-attachments-calling-flow-test-set.xml" />
+	<munit:test name="epg-claims-attachments-calling-flow-call-test-Success" doc:id="3b77b0bc-83cb-4908-b284-b09cf1cef33f" description="Test direct Full calling flow call flow" timeOut="180000">
+		<munit:behavior >
+			<munit:set-event doc:name="Test 1 - Mock Parameters" doc:id="12eb2a3e-10ac-4692-97aa-6fb0b53018ac">
+				<munit:payload value='#[output application/java&#10;---&#10;{&#10;	"0":{&#10;	"0": 23, &#10;	"1": 344&#10;	}&#10;}]' />
+				<munit:attributes value='#[{"queryParams":{"sourceOriginator":"CNH","targetLocation":"/ADD", "attachmentName": "test.pdf"},"uriParams":{"claimNumber":"13353292"}}]' />
+				<munit:variables >
+					<munit:variable key="claimAttachmentProperties" value='{"sourceOriginator":"CNH","claimNumber":"121234342","fileName":"test.pdf.2023090802", "fileNameExtension":"pdf"}' encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="Test 1 - Mock when" doc:id="3deac54e-5e29-46d0-bfca-9856c510bf2a" processor="sftp:write" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Write Input Attachments to GS Destination Folder" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- {"status": "Success"}]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="b65de0e1-7fcd-4e7f-8ce6-dc2b4ba670cc" >
+				<flow-ref doc:name="post:\auto\epg\claims\(claimNumber)\documents:multipart\form-data:epg-claims-attachments-api-config" doc:id="1f8b82dc-6347-4794-a1ff-b65151c28771" name="post:\auto\epg\claims\(claimNumber)\documents:multipart\form-data:epg-claims-attachments-api-config" />
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="3ba0dee0-8312-498c-bb3d-f2ad554f0ac9" >
+						<logger level="INFO" doc:name="Test 1 - Log Error Entry" doc:id="16863b3b-5194-40a2-a8d6-8b6af320ee74" message="MUnit test case 1: Failed EPG Claims Attachments Calling Flow Call Flow" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Test 1 - Assert equals" doc:id="7a4844b8-5bf5-4ceb-a448-11d03766ec2c" expected='Success' message="MUnit test case 1: Failed EPG Claims Attachments Calling Flow Call Flow" actual="#[payload.status]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="epg-claims-attachments-calling-flow-call-test-Failure" doc:id="06b22a83-6d1f-44aa-8df2-41b4cf24ccec" description="Test direct Full calling flow error call flow" timeOut="180000" >
+		<munit:behavior >
+			<munit:set-event doc:name="Test 1 - Mock Parameters" doc:id="3d0bf9d4-dc37-40bb-808c-731eadfb4f63" >
+				<munit:payload value='#[output application/java&#10;---&#10;{&#10;	"0":{&#10;	"0": 23, &#10;	"1": 344&#10;	}&#10;}]' />
+				<munit:attributes value='#[{"queryParams":{"sourceOriginator":"CNH","targetLocation":"/ADD", "attachmentName": "test.pdf"},"uriParams":{"claimNumber":"13353292"}}]' />
+				<munit:variables >
+					<munit:variable key="claimAttachmentProperties" value='{"sourceOriginator":"CNH","claimNumber":"121234342","fileName":"test.pdf.2023090802","fileNameExtension":"pdf"}' encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="Test 1 - Mock when" doc:id="b0d08067-0d5c-4ae0-8c3d-dadd9c76f337" processor="sftp:write" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Write Input Attachments to GS Destination Folder" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- {"status": "Error"}]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="3338d603-faa3-4a52-95b2-cbc1507396cf" >
+				<flow-ref doc:name="post:\auto\epg\claims\(claimNumber)\documents:multipart\form-data:epg-claims-attachments-api-config" doc:id="92edec12-5d91-4cba-afae-007115d55e5e" name="post:\auto\epg\claims\(claimNumber)\documents:multipart\form-data:epg-claims-attachments-api-config" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="af35fff5-54e4-44ed-bec0-1f9ba66bc435" >
+						<logger level="INFO" doc:name="Test 1 - Log Error Entry" doc:id="14a30647-d487-4f93-b1cd-e2c6b96ba492" message="MUnit test case 2: Failed EPG Claims Attachments Calling Flow Error Call Flow" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Test 1 - Assert equals" doc:id="c0574406-cdea-46ce-b103-317264f96182" actual="#[payload.status]" expected="Success" message="MUnit test case 2: Failed EPG Claims Attachments Calling Flow Error Call Flow" />
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

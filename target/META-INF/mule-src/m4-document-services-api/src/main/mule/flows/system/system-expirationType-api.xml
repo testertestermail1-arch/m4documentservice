@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+<sub-flow name="system-internal-listener-expirationType-DB-flow" doc:id="7d4d9c32-5231-41cf-b25c-8b75bc45ce6c" >
+        <logger level="INFO" doc:name="Before expirationtype DB call Logger" doc:id="7ededdbd-0306-4f6c-a9fc-e9f34df54fec" message="MessageId: #[correlationId] - Before expirationtype DB call Logger - #[vars.formNumber] - #[vars.splitCoverageForExpirationType] - #[vars.deductibleBase]"/>
+        <http:request method="GET" doc:name="Call For Expiration Type" doc:id="dcf3a681-2b54-4ef8-a630-38176cac2861" config-ref="HTTP_Request_configuration_for_ExpirationType" path="${api.expirationType.http.internal.listener.path}" outputMimeType="application/java">
+            <http:headers ><![CDATA[#[output application/java
+---
+{
+    "formNumber" : vars.formNumber,
+    "updatedCountryCode" : vars.updatedCountryCode,
+    "deductibleBase" : vars.deductibleBase,
+    "splitCoverageForExpirationType" : vars.splitCoverageForExpirationType
+}]]]></http:headers>
+        </http:request>
+        <logger level="INFO" doc:name="After expirationtype DB call Logger" doc:id="ff26eb1e-2458-42eb-a904-3dc887222a68" message="MessageId: #[correlationId] - After expirationtype DB call Logger"/>
+		<ee:transform doc:name="Setting Payload From Internal Listener" doc:id="d57a60db-4fa1-47d3-b201-d5c8aa2fda3d">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload as String]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+</sub-flow>
+</mule>

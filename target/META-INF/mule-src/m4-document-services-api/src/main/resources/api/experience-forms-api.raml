@@ -1,0 +1,70 @@
+#%RAML 1.0
+title: Test API
+version: v1
+baseUri: http://127.0.0.1:8081/api
+
+securitySchemes:
+  oauth_2_0:
+        description: |
+            Mule OAuth 2.0.
+        type: OAuth 2.0
+        describedBy:
+            headers:
+                Authorization:
+                    description: |
+                      Used to send a valid OAuth 2 access token. Do not use
+                      with the "access_token" query string parameter.
+                    type: string
+            queryParameters:
+                access_token:
+                    description: |
+                      Used to send a valid OAuth 2 access token. Do not use together with
+                      the "Authorization" header
+                    type: string
+            responses:
+                401:
+                    description: |
+                        Bad or expired token.
+                403:
+                    description: |
+                        Bad OAuth request.
+        settings:
+          authorizationUri: http://0.0.0.0:8081/authorize
+          accessTokenUri: http://0.0.0.0:8081/access-token
+          authorizationGrants: [authorization_code, password, client_credentials, implicit]
+     
+/service/forms:
+  post:
+    securedBy: [oauth_2_0]
+    description: Service to create service contract form from template
+    body:
+      application/json:
+        type: !include datatypes/service-forms-request-datatype.raml
+        example: !include examples/service-forms-request-example.json
+    responses:
+      200:
+        body:
+          application/json: !include examples/service-forms-response-example.json   
+      400:
+        body:
+         application/json:  
+           example: !include examples/Service-Forms-Error-Example.json        
+                   
+/contracts/document:
+   get:
+    securedBy: [oauth_2_0]
+    description: Service to get the SpringCM PDF Doc
+    queryParameters:
+       documentID:
+        type: string
+        description: Id to extract the contract document from SpringCM
+        example: "c5435eb5-c64b-ed11-b82c-48df378a7098"
+        required: true
+    responses:
+      200:
+        body:
+          application/pdf:
+      400:
+        description: When a request comes in that is not valid
+        body:
+          application/json:       

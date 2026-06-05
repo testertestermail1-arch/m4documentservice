@@ -1,0 +1,47 @@
+#%RAML 1.0
+title: Forms Services Healthcheck API
+version: v1
+baseUri: http://qa.api.assurant.com/api
+description: This is health check API.
+mediaType: application/json
+
+securitySchemes:
+  oauth_2_0:
+        description: |
+            Mule OAuth 2.0.
+        type: OAuth 2.0
+        describedBy:
+            headers:
+                Authorization:
+                    description: |
+                      Used to send a valid OAuth 2 access token. Do not use
+                      with the "access_token" query string parameter.
+                    type: string
+            queryParameters:
+                access_token:
+                    description: |
+                      Used to send a valid OAuth 2 access token. Do not use together with
+                      the "Authorization" header
+                    type: string
+            responses:
+                401:
+                    description: |
+                        Bad or expired token.
+                403:
+                    description: |
+                        Bad OAuth request.
+        settings:
+          authorizationUri: https://assurant.oktapreview.com/oauth2/ausfprclcdwx7BThK0h7/v1/authorize?nonce=token
+          accessTokenUri: https://assurant.oktapreview.com/oauth2/ausfprclcdwx7BThK0h7/v1/token
+          authorizationGrants: [authorization_code, password, client_credentials, implicit]
+                         
+/health:
+  get:
+    securedBy: [oauth_2_0]
+    displayName: API Health
+    description: Healthcheck call for API.
+    responses:
+      204: 
+        description: API is up and running.  
+      500:
+        description: API is currently unavailable.     

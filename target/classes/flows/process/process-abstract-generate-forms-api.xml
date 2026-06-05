@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="process-abstract-generate-forms-flow" doc:id="a530388a-4e6b-4d4a-a52f-7cea161bec2e" >
+		<ee:transform doc:name="Store Required Variable" doc:id="82073292-51bd-47dc-9b8f-530321f6cce8">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="accountNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.originalPayload.Envelope.Body.getForm.arg0.dealer.internalId]]></ee:set-variable>
+				<ee:set-variable variableName="token" ><![CDATA[%dw 2.0
+output application/java
+var token = vars.originalPayload.Envelope.Body.getForm.arg0.callingApp.serviceSecurity.token
+---
+if (!isEmpty(token)) (trim(token)) else ""]]></ee:set-variable>
+				<ee:set-variable variableName="userName" ><![CDATA[%dw 2.0
+output application/java
+var userName = vars.originalPayload.Envelope.Body.getForm.arg0.callingApp.serviceSecurity.username
+---
+if (!isEmpty(userName)) (trim(userName)) else ""]]></ee:set-variable>
+				<ee:set-variable variableName="appId" ><![CDATA[%dw 2.0
+output application/java
+var appId = vars.originalPayload.Envelope.Body.getForm.arg0.callingApp.appId
+---
+if (!isEmpty(appId)) (trim(appId)) else ""]]></ee:set-variable>
+				<ee:set-variable variableName="abstractFormsFlag" ><![CDATA[%dw 2.0
+output application/java
+---
+true]]></ee:set-variable>
+				<ee:set-variable variableName="formNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.originalPayload.Envelope.Body.getForm.arg0.productDetails.form.number]]></ee:set-variable>
+				<ee:set-variable variableName="productDetailType" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.originalPayload.Envelope.Body.getForm.arg0.productDetails.'type']]></ee:set-variable>
+				<ee:set-variable variableName="countryCode" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.originalPayload.Envelope.Body.getForm.arg0.dealer.address.country]]></ee:set-variable>
+				<ee:set-variable variableName="deductibleAmount" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.originalPayload.Envelope.Body.getForm.arg0.productDetails.deductibleAmount]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Call system-get-cerdentials-flow" doc:id="b957c112-fe95-4265-b188-43b9f57c1f55" name="system-get-cerdentials-flow" target="userValue"/>
+		<ee:transform doc:name="Mandatory Validations" doc:id="275c6d01-05cb-46ad-89b2-506283015c8e" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="validationMessage" ><![CDATA[%dw 2.0
+output application/java
+---
+if ( isEmpty(vars.accountNumber) ) "The dealers internal Id cannot be null, blank nor contain whitespaces only"
+	else if ( (!isEmpty(vars.countryCode)) and (sizeOf(vars.countryCode) > 3) ) "error|The Dealers Country provided is invalid. Allowed Length:3" 
+	else if ( isEmpty(vars.productDetailType) ) "error|The Product Details Type cannot be null, blank nor contain whitespaces only" 
+	else if ( isEmpty(vars.formNumber) ) "error|The Form Number cannot be null, blank nor contain whitespaces only" 
+	else if ( isEmpty(vars.deductibleAmount) ) "error|The Deductible Amount cannot be null, blank nor contain whitespaces only" 
+	else null]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<validation:is-null doc:name="Validate errorMessage" doc:id="8b821e48-4bed-4fe8-87e8-d202ca3b3924" config-ref="Validation_Config" value="#[vars.validationMessage]" message="#[vars.validationMessage]">
+			<error-mapping targetType="CUS_DATA_VALIDATION:ERROR"/>
+		</validation:is-null>
+		<validation:is-false doc:name="Validate user cerdentials" doc:id="db9a0574-7f0e-4fac-83d1-069cde8b3de2" config-ref="Validation_Config" expression='#[vars.userValue == [] and vars.userName != "" and vars.token != ""]' message='#["The security service credentials are not valid"]'>
+			<error-mapping targetType="CUS_USER_VALIDATION:ERROR" />
+		</validation:is-false>
+		<ee:transform doc:name="Set Source" doc:id="2c4d7140-5fc5-4e9f-a9b9-1fc255cd0977">
+			<ee:message>
+				<ee:set-attributes><![CDATA[%dw 2.0
+output application/java
+---
+queryParams:source:vars.appId]]></ee:set-attributes>
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+				<ee:transform doc:name="Frame Request For REST Forms API" doc:id="ef2e654f-e87d-4296-947a-043bbdc5dee7">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml writeDeclaration = false
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+ns web http://webservice.forms.twg.com/
+ns xsi http://www.w3.org/2001/XMLSchema-instance
+---
+soapenv#Envelope  @('xmlns:web': web) :vars.originalPayload.Envelope]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Call Rest Forms API" doc:id="2640d013-fc53-4686-b501-379cc0b1f52e" name="post:\forms:forms-internal-services-api-config" />
+		<ee:transform doc:name="Success Response" doc:id="639563f8-e3b0-43cf-aa59-522034e7185b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml writeDeclaration=false
+---
+payload.Envelope.Body]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>
+

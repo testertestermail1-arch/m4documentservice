@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<flow name="process-service-forms-api-Flow" doc:id="4bb4422f-4690-4b33-9f25-32b66ddc4b38" >
+		<flow-ref doc:name="process-service-forms-validation-flow" doc:id="8e854af0-f36c-4fa6-b35d-a5bc83a76030" name="process-service-forms-validation-flow"/>
+		<ee:transform doc:name="Framing Rest Forms Payload" doc:id="5bd58e3d-7621-4c6f-9aa5-394d91a2644f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json 
+fun checkNullandEmpty(value) = (if(value != null and value !="")value else "")
+---
+{
+	"sourceOriginator" : payload.sourceOriginator,
+	"quoteId" : payload.quoteId,
+	"contractNumber" : payload.contractNumber,
+	"sendSignature" : if(payload.sendSignature != null and payload.sendSignature != "")payload.sendSignature else "true",
+	"stampSignature":if(payload.stampSignature != null and payload.stampSignature != "")payload.stampSignature else "true",
+	"account" : {
+		"accountNumber" : payload.account.accountNumber,
+		"rdgNumber" : payload.account.accountNumber,
+		"name" :payload.account.name,
+		"address1" :payload.account.address1,
+		"city" : payload.account.city,
+		"stateCode" :payload.account.stateCode,
+		"postalCode" : payload.account.postalCode,
+		"countryCode":payload.account.countryCode,
+		"homePhoneNumber":payload.account.homePhoneNumber,
+		"workPhoneNumber":payload.account.workPhoneNumber,
+		"mobilePhoneNumber":payload.account.mobilePhoneNumber
+	},
+	"fsm" : {
+		"fsmFirstName" : payload.fsm.fsmFirstName,
+		"fsmLastName" : payload.fsm.fsmLastName
+	},
+	"vehicle" : {
+		"vehicleType" : payload.vehicle.vehicleType,
+        "vehicleCode": payload.vehicle.vehicleCode,
+        "model": payload.vehicle.model,
+        "make": payload.vehicle.make,
+        "trim": payload.vehicle.trim,
+        "inServiceDate": payload.vehicle.inServiceDate,
+        "odometer": payload.vehicle.odometer,
+        "VIN": payload.vehicle.VIN,
+        "vehicleClass": payload.vehicle.vehicleClass,
+        "vehicleYear": payload.vehicle.vehicleYear,
+        "vehiclePurchasePrice": payload.vehicle.vehiclePurchasePrice,
+        "fuelType": payload.vehicle.fuelType,
+        "driveTrain": payload.vehicle.driveTrain,
+        "turbo": payload.vehicle.turbo,
+        "supercharged": payload.vehicle.supercharged,
+        "commercialUsage": payload.vehicle.commercialUsage,
+        "hasNavigation": payload.vehicle.hasNavigation,
+        "vehicleNewOrUsed": payload.vehicle.vehicleNewOrUsed,
+        "expirationType": payload.vehicle.expirationType,
+        "maturityDate": payload.vehicle.maturityDate
+	},
+	"product" : [{
+	  //"productCode": payload.product.productCode,
+      "productDetailType": if(payload.product.productDetailType != null and payload.product.productDetailType != "")payload.product.productDetailType else "",
+      "productClass": payload.product.productClass,
+      "agreementStatus": payload.product.agreementStatus,
+      //"effectiveDate": payload.product.effectiveDate,
+      //"expirationDate": payload.product.expirationDate,
+      "formNumber": payload.product.formNumber,
+      "isCombo": if(payload.product.isCombo != null and payload.product.isCombo != "")payload.product.isCombo as Boolean  else "",
+      "reportedCustomerCost": if(payload.product.reportedCustomerCost != null and payload.product.reportedCustomerCost != "")payload.product.reportedCustomerCost as Number  else "",
+      //"salesTax": payload.product.salesTax,
+      "deductible": payload.product.deductibleBase as Number,
+      "reducedDeductible": if(payload.product.deductibleReduced != null and payload.product.deductibleReduced != "")payload.product.deductibleReduced as Number  else "",
+      "serviceInterval": if(payload.product.serviceInterval != null and payload.product.serviceInterval != "")payload.product.serviceInterval as Number else "" ,
+      "numberOfServices": payload.product.numberOfServices,
+      "systemPin": payload.product.systemPin,
+      "coverage": payload.product.coverage,
+      "termMonths": payload.product.termMonths,
+      "termDistance": payload.product.termDistance,
+      "autoRenew": if(payload.product.autoRenew != null and payload.product.autoRenew != "")payload.product.autoRenew else "N",      
+      "optionalCoverages": if(payload.product.optionalCoverages != null and payload.product.optionalCoverages != "")(payload.product.optionalCoverages map {
+       "coverageType": $.coverageType,
+       "coverageAmount": $.coverageAmount
+      }) else ""
+	}],
+	"fillers": [],
+	"holder" : {
+		
+	  //"memberNumber": payload.holder.memberNumber,
+      //"salutation": payload.holder,
+      "customerFirstName": payload.holder.customerFirstName,
+      "customerMiddleName": payload.holder.customerMiddleName,
+      "customerLastName": payload.holder.customerLastName,
+      "customerAddress1": payload.holder.customerAddress1,
+      //"customerAddress2": payload.holder.customerAddress2,
+      "customerCity": payload.holder.customerCity,
+      "customerStateCode": payload.holder.customerStateCode,
+      "customerPostalCode": payload.holder.customerPostalCode,
+      "customerCountryCode": payload.holder.customerCountryCode,
+      "customerHomePhoneNumber": payload.holder.customerHomePhoneNumber,
+      "customerWorkPhoneNumber": payload.holder.customerWorkPhoneNumber,
+      "customerMobilePhoneNumber": payload.holder.customerMobilePhoneNumber,
+      "customerEveningPhoneNumber": payload.holder.customerEveningPhoneNumber,
+      "customerEmail": payload.holder.customerEmail,
+      "coBuyerFirstName": payload.holder.coBuyerFirstName,
+      "coBuyerMiddleName": payload.holder.coBuyerMiddleName,
+      "coBuyerLastName": payload.holder.coBuyerLastName,
+      "coBuyerAddress1": payload.holder.coBuyerAddress1,
+      "coBuyerAddress2": payload.holder.coBuyerAddress2,
+      "coBuyerCity": payload.holder.coBuyerCity,
+      "coBuyerStateCode": payload.holder.coBuyerStateCode,
+      "coBuyerPostalCode": payload.holder.coBuyerPostalCode,
+      "coBuyerCountryCode": payload.holder.coBuyerCountryCode,
+      "coBuyerHomePhoneNumber": payload.holder.coBuyerHomePhoneNumber,
+      "coBuyerWorkPhoneNumber": payload.holder.coBuyerWorkPhoneNumber,
+      "coBuyerMobilePhoneNumber": payload.holder.coBuyerMobilePhoneNumber,
+      "coBuyerEmail": payload.holder.coBuyerEmail	
+      },
+      "financing" : {
+      "lienholderName": payload.financing.lienholderName,
+      "lienholderAddress1": payload.financing.lienholderAddress1,
+      "lienholderAddress2": payload.financing.lienholderAddress2,
+      "lienholderCity": payload.financing.lienholderCity,
+      "lienholderState": payload.financing.lienholderState,
+      "lienholderPostalCode": payload.financing.lienholderPostalCode,
+      "lienholderPhoneNumber": payload.financing.lienholderPhoneNumber,
+      "lienholderNumber": payload.financing.lienholderNumber,
+      "lienholderAccountNumber": payload.financing.lienholderAccountNumber,
+      "financeType": if(payload.financing.financeType == "Cash")"C" else if(payload.financing.financeType == "Loan")"L" else if(payload.financing.financeType == "Lease")"LE"
+                     else if(payload.financing.financeType == "OtherLoan")"LO" else if(payload.financing.financeType == "Balloon")"BL"  else "F",
+      "baloonResidualValue": if(payload.financing.baloonResidualValue != null and payload.financing.baloonResidualValue != "")payload.financing.baloonResidualValue as Number else "",
+      //"financedAmount": payload.financing.financedAmount,
+      "annualPercentageRate": payload.financing.annualPercentageRate,
+      "loanTotalPayment": payload.financing.loanTotalPayment,
+      //"financeTermMonths": payload.financing.financeTermMonths,
+      "numberOfAdvPayments": payload.financing.numberOfAdvPayments,
+      "numberOfSkipPayments": if(payload.financing.numberOfSkipPayments != null and payload.financing.numberOfSkipPayments != "")payload.financing.numberOfSkipPayments as Number else "",
+      "msrp": payload.financing.msrp,
+      "bookValue": if(payload.financing.bookValue != null and payload.financing.bookValue != null)payload.financing.bookValue as Number else "",
+      //"interestStartDate": payload.financing.interestStartDate,
+      "dateOfFirstPayment": payload.financing.dateOfFirstPayment,
+      "loanNumber": payload.financing.loanNumber,
+      //"gapIdNumber": payload.financing.gapIdNumber,
+      //"leaseCapAmount": payload.financing.leaseCapAmount,
+      //"period": payload.financing.period,
+      "startDate": payload.product.effectiveDate,
+      //"endDate": payload.financing.endDate,
+      "grossCapCost":if(payload.financing.grossCapCost != null and payload.financing.grossCapCost != "") payload.financing.grossCapCost as Number else "",
+      "totalAllowableMilesContract": if(payload.financing.totalAllowableMilesContract != null and payload.financing.totalAllowableMilesContract != "")payload.financing.totalAllowableMilesContract as Number else "",
+      "scheduledTerminationDate": payload.financing.scheduledTerminationDate,
+      "loanMonthlyPayment": if(payload.financing.loanMonthlyPayment != null and payload.financing.loanMonthlyPayment != "")payload.financing.loanMonthlyPayment as Number else "",
+      "paymentDueDay":payload.product.paymentDueDay,
+      "installmentDownPayment": payload.financing.installmentDownPayment default "",
+      "installmentAmount": payload.financing.installmentAmount default "",
+      "installmentPaymentFrequency":payload.financing.installmentPaymentFrequency default "",
+      "installmentPaymentTerm":payload.financing.installmentPaymentTerm
+   }
+	
+	
+}]]></ee:set-payload>
+				<ee:set-attributes ><![CDATA[%dw 2.0
+output application/json
+var urlOnly = payload.urlOnly
+---
+{
+	"queryParams":{
+		"source":if(urlOnly=='Y')"glow" else ""
+	},
+	"headers":{
+		"Content-Type":"application/json"
+	}
+}
+]]></ee:set-attributes>
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Call post:\forms:forms-internal-services-api-config" doc:id="f7b22e3c-7e54-4496-af9c-e26efaae3684" name="post:\forms:forms-internal-services-api-config"/>
+		<ee:transform doc:name="Final response" doc:id="4c1b91c7-ff06-4de4-9e82-c20fea186f4d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+fun apiURL(url)= ("https://" ++ p('api.implementation.external.host') ++ "/v1/contracts/document?documentID=" ++ ((((url splitBy '&')[1]) splitBy '=')[1])) 
+---
+if(upper(payload.status) == 'SUCCESS')({
+"status" : payload.status,
+"pdfs" : payload.pdfs map (data,index) ->{
+	("signatures" : data.signatures) if (data.signatures != null and data.signatures != ""),
+	"type" : data."type",
+	"document" :  if (data.pdf != null and data.pdf !="") data.pdf else if (data.url != null and data.url != "") apiURL(data.url) else "",
+	"formNumber" : data.formNumber,
+	"issuedDate" : data.issuedDate
+	
+}
+}) else payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	
+</flow>
+	<sub-flow name="process-service-forms-download-document-subflow" doc:id="7f45179b-0444-4ead-b2f5-5af28cb2c71d" >
+		<ee:transform doc:name="Required Vars" doc:id="b597c7a6-d4a1-4966-9f28-ffd4503828eb" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="SpringCMTemplateID" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.queryParams.documentID]]></ee:set-variable>
+				<ee:set-variable variableName="contractNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+"Null"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<validation:is-true doc:name="Not Empty documentID" doc:id="7790e841-3eb4-42d0-b940-257ae8028726" config-ref="Validation_Config" message="Required Value is Missing for [documentID]" expression="#[!isEmpty(vars.SpringCMTemplateID)]"/>
+		<flow-ref doc:name="Call process-generate-forms-rest-api-download-template-flow" doc:id="ab8a507c-f7f3-44c6-83af-ee02c3913f07" name="process-generate-forms-rest-api-download-template-flow"/>
+		<ee:transform doc:name="Final Response" doc:id="97db4fa3-dea8-4e9f-bcca-b1e3ab7f9483" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output application/PDF with binary
+---
+fromBase64(payload.pdfResponse as String) as Binary
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	<set-variable value="application/pdf" doc:name="Set Default Content-Type" doc:id="746035d3-667c-4eb2-a5b2-62056f0042b2" variableName="Content-Type"/>
+		
+	</sub-flow>
+
+</mule>

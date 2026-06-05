@@ -1,0 +1,951 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="system-createForm-api-test-suite.xml" />
+	<munit:test name="Product-Mandatory-Fields-Test" doc:id="5eaa11d7-19f6-4150-94ae-d01bddd67e7b" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="0c9394eb-dd37-42ab-a47c-77e175b6e50c" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "vehicle": {
+        "VIN": "2GNAXYEX6K6259369",
+        "vehicleYear": "2019",
+        "vehicleType": "T",
+        "vehicleNewOrUsed": "N",
+        "vehicleCode": "CHEVROLET@EQUINOX@PREMIER@AWD@G@T@Y",
+        "vehicleClass": "H14",
+        "turbo": "Y",
+        "odometer": 600,
+        "model": "EQUINOX PREMIER",
+        "make": "CHEVROLET",
+        "inServiceDate": "2022-09-19",
+        "hasNavigation": "N",
+        "fuelType": "G",
+        "driveTrain": "AWD",
+        "commercialUsage": "N"
+    },
+    "sourceOriginator": "GLOW",
+    "quoteId": "a0Z5C000002SOumUAG",
+    "product": [
+        {
+            "termMonths": 60,
+            "termDistance": 999999,
+            "serviceInterval": 0.0,
+            "reportedCustomerCost": 390.0,
+            "reducedDeductible": 7,
+            "productDetailType": "PPM",
+            "productCode": "ANVCPT",
+            "productClass": "",
+            "numberOfServices": 7.0,
+            "isCombo": false,
+            "formNumber": "PWANVCPINCTFSR0120",
+            "deductible": 7,
+            "coverage": "",
+            "agreementStatus": "P"
+        }
+    ],
+    "holder": {
+        "customerStateCode": "IL",
+        "customerPostalCode": "60608",
+        "customerMiddleName": "Solutions",
+        "customerLastName": "Inc",
+        "customerHomePhoneNumber": "(555) 555-5555",
+        "customerFirstName": "TWG Innovative",
+        "customerEmail": "test@test.com",
+        "customerCountryCode": "USA",
+        "customerCity": "Chicago",
+        "customerAddress1": "P.O. Box 87719"
+    },
+    "fsm": {
+        "fsmLastName": "",
+        "fsmFirstName": ""
+    },
+    "financing": {
+        "totalAllowableMilesContract": 0,
+        "startDate": "2022-09-19",
+        "scheduledTerminationDate": "2027-09-19",
+        "numberOfSkipPayments": 0,
+        "numberOfAdvPayments": 0,
+        "nada": 0,
+        "msrp": 0,
+        "loanTotalPayment": 0,
+        "loanNumber": "",
+        "loanMonthlyPayment": 0.0,
+        "grossCapCost": 0.0,
+        "financeType": "C",
+        "bookValue": 0,
+        "baloonResidualValue": 0.0,
+        "annualPercentageRate": 0
+    },
+    "fillers": [],
+    "contractNumber": "FinalTest22778",
+    "account": {
+        "workPhoneNumber": "480598-0000",
+        "stateCode": "AZ",
+        "rdgNumber": "N0202521",
+        "postalCode": "85284",
+        "name": "AUTONATION TOYOTA TEMPE",
+        "mobilePhoneNumber": "480598-0000",
+        "homePhoneNumber": "480598-0000",
+        "countryCode": "USA",
+        "city": "TEMPE",
+        "address1": "7970 SOUTH AUTOPLEX LOOP",
+        "accountNumber": "N0202521"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+true]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="1a799903-51f4-4b68-ba82-63e9164ec8d7" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="284eb620-44ba-4878-9935-db32b4259302" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="d3c10a5e-4254-42e6-8b49-39a7a890e076" >
+						<ee:transform doc:name="Transform Message" doc:id="4555bcc9-a884-43a9-b5dc-4d119ff18e7b" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution><munit:validation>
+			<ee:transform doc:name="Prepare json response" doc:id="1345e730-2e88-4861-825b-7455f753e59e" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+---
+{
+    "status": "Failure",
+    "errors":  vars.javaPayload.validationErrors pluck({ 
+     key : $$,
+     message: $ 
+      })
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-that doc:id="e82ef0dd-dfba-4e5e-84f3-fd95aa87fbaa" is='#[MunitTools::equalTo("The product detail product class cannot be null, blank nor contain whitespaces only.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[0].message]" doc:name="Assert product Class"/>
+			<munit-tools:assert-that doc:id="80c30c45-7d3d-42a5-a1a1-b92afad7cba2" is='#[MunitTools::equalTo("The product detail coverage name cannot be null, blank nor contain whitespaces only.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[1].message]" doc:name="Assert coverage Name"/>
+		</munit:validation>
+	</munit:test>
+
+<munit:test name="Vehicle-Mandatory-Fields-Test" doc:id="f7af8342-4992-45c0-be88-9cbfd17af260" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="142ccd7f-f646-4e75-b8e9-e7c8d4466f50" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "vehicle": {
+        "VIN": "",
+        "vehicleYear": "",
+        "vehicleType": "",
+        "vehicleNewOrUsed": "N",
+        "vehicleCode": "CHEVROLET@EQUINOX@PREMIER@AWD@G@T@Y",
+        "vehicleClass": "",
+        "turbo": "Y",
+        "odometer": null,
+        "model": "",
+        "make": "",
+        "inServiceDate": "",
+        "hasNavigation": "N",
+        "fuelType": "G",
+        "driveTrain": "AWD",
+        "commercialUsage": "N"
+    },
+    "sourceOriginator": "GLOW",
+    "quoteId": "a0Z5C000002SOumUAG",
+    "product": [
+        {
+            "termMonths": 60,
+            "termDistance": 999999,
+            "serviceInterval": 0.0,
+            "reportedCustomerCost": 390.0,
+            "reducedDeductible": 7,
+            "productDetailType": "PPM",
+            "productCode": "ANVCPT",
+            "productClass": "VCP Standard|111",
+            "numberOfServices": 7.0,
+            "isCombo": false,
+            "formNumber": "PWANVCPINCTFSR0120",
+            "deductible": 7,
+            "coverage": "VCP- Conventional",
+            "agreementStatus": "P"
+        }
+    ],
+    "holder": {
+        "customerStateCode": "IL",
+        "customerPostalCode": "60608",
+        "customerMiddleName": "Solutions",
+        "customerLastName": "Inc",
+        "customerHomePhoneNumber": "(555) 555-5555",
+        "customerFirstName": "TWG Innovative",
+        "customerEmail": "test@test.com",
+        "customerCountryCode": "USA",
+        "customerCity": "Chicago",
+        "customerAddress1": "P.O. Box 87719"
+    },
+    "fsm": {
+        "fsmLastName": "",
+        "fsmFirstName": ""
+    },
+    "financing": {
+        "totalAllowableMilesContract": 0,
+        "startDate": "2022-09-19",
+        "scheduledTerminationDate": "2027-09-19",
+        "numberOfSkipPayments": 0,
+        "numberOfAdvPayments": 0,
+        "nada": 0,
+        "msrp": 0,
+        "loanTotalPayment": 0,
+        "loanNumber": "",
+        "loanMonthlyPayment": 0.0,
+        "grossCapCost": 0.0,
+        "financeType": "C",
+        "bookValue": 0,
+        "baloonResidualValue": 0.0,
+        "annualPercentageRate": 0
+    },
+    "fillers": [],
+    "contractNumber": "FinalTest22778",
+    "account": {
+        "workPhoneNumber": "480598-0000",
+        "stateCode": "AZ",
+        "rdgNumber": "N0202521",
+        "postalCode": "85284",
+        "name": "AUTONATION TOYOTA TEMPE",
+        "mobilePhoneNumber": "480598-0000",
+        "homePhoneNumber": "480598-0000",
+        "countryCode": "USA",
+        "city": "TEMPE",
+        "address1": "7970 SOUTH AUTOPLEX LOOP",
+        "accountNumber": "N0202521"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+true]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="e9a34ffa-20ca-4486-9b2e-d9321023a9bd" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="7f9eefb9-5634-4ed6-a770-cdfdd4e2a40c" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="fa90f3ca-1255-49d7-aebf-a24f44dbad54" >
+						<ee:transform doc:name="Transform Message" doc:id="b78ffdf2-7b3a-4c49-8562-4acdea2793a4" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution><munit:validation>
+			<ee:transform doc:name="Prepare json response" doc:id="c66ca02f-2906-4231-a86d-aeabc18808e9" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+---
+{
+    "status": "Failure",
+    "errors":  vars.javaPayload.validationErrors pluck({ 
+     key : $$,
+     message: $ 
+      })
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-that doc:id="f971be58-a90a-44c1-b1d6-6a4c1a1291e5" is='#[MunitTools::equalTo("The vehicle type should be one of the following values: {W,P,C,T,S,M,R,A,CO,MH,PW,V,TT,FW,FC,SI,RH,RM,RP,RS,RT,HT}.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[0].message]" doc:name="Assert vehicle type"/>
+			<munit-tools:assert-that doc:id="635476b2-7ccd-4fd3-8bab-fe26a837afa0" is='#[MunitTools::equalTo("The vehicle vin cannot be null, blank nor contain whitespaces only.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[1].message]" doc:name="Assert vehicle vin"/>
+			<munit-tools:assert-that doc:id="8d8d0452-7f62-4aa6-863a-a6abe9f3ee7c" is='#[MunitTools::equalTo("The vehicle model cannot be null.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[2].message]" doc:name="Assert model"/>
+			<munit-tools:assert-that doc:id="28b6a3d0-3025-45e5-a165-3c442b7d2fe7" is='#[MunitTools::equalTo("The vehicle in-service date cannot be null.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[3].message]" doc:name="Assert inServiceDate"/>
+			<munit-tools:assert-that doc:id="f945d991-d819-442f-8fe6-d4b86d5a96f8" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[4].message]" is='#[MunitTools::equalTo("The make name cannot be null, blank nor contain whitespaces only.")]' doc:name="Assert make"/>
+			<munit-tools:assert-that doc:id="dafbf809-c83a-42ce-b306-82fdae4ab9ae" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[5].message]" is='#[MunitTools::equalTo("The vehicle class cannot be null, blank nor contain whitespaces only.")]' doc:name="Assert vehicle class"/>
+			<munit-tools:assert-that doc:id="23babda5-70dc-41d4-8318-a9f079782073" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[6].message]" is='#[MunitTools::equalTo("The vehicle year cannot be null, blank nor contain whitespaces only.")]' doc:name="Assert Vehicle Year"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="Finance-Vehicle-Type-Test" doc:id="8492791d-bf18-4ce4-b72b-616b9b6f96ac" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="84bbfaf1-5409-4d31-b046-a4ddd5eddc89" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "vehicle": {
+        "VIN": "2GNAXYEX6K6259369",
+        "vehicleYear": "2019",
+        "vehicleType": "",
+        "vehicleNewOrUsed": "N",
+        "vehicleCode": "CHEVROLET@EQUINOX@PREMIER@AWD@G@T@Y",
+        "vehicleClass": "H14",
+        "turbo": "Y",
+        "odometer": 600,
+        "model": "EQUINOX PREMIER",
+        "make": "CHEVROLET",
+        "inServiceDate": "2022-09-19",
+        "hasNavigation": "N",
+        "fuelType": "G",
+        "driveTrain": "AWD",
+        "commercialUsage": "N"
+    },
+    "sourceOriginator": "GLOW",
+    "quoteId": "a0Z5C000002SOumUAG",
+    "product": [
+        {
+            "termMonths": 60,
+            "termDistance": 999999,
+            "serviceInterval": 0.0,
+            "reportedCustomerCost": 390.0,
+            "reducedDeductible": 7,
+            "productDetailType": "PPM",
+            "productCode": "ANVCPT",
+            "productClass": "VCP Standard|111",
+            "numberOfServices": 7.0,
+            "isCombo": false,
+            "formNumber": "PWANVCPINCTFSR0120",
+            "deductible": 7,
+            "coverage": "VCP- Conventional",
+            "agreementStatus": "P"
+        }
+    ],
+    "holder": {
+        "customerStateCode": "IL",
+        "customerPostalCode": "60608",
+        "customerMiddleName": "Solutions",
+        "customerLastName": "Inc",
+        "customerHomePhoneNumber": "(555) 555-5555",
+        "customerFirstName": "TWG Innovative",
+        "customerEmail": "test@test.com",
+        "customerCountryCode": "USA",
+        "customerCity": "Chicago",
+        "customerAddress1": "P.O. Box 87719"
+    },
+    "fsm": {
+        "fsmLastName": "",
+        "fsmFirstName": ""
+    },
+    "financing": {
+        "totalAllowableMilesContract": 0,
+        "startDate": "2022-09-19",
+        "scheduledTerminationDate": "2027-09-19",
+        "numberOfSkipPayments": 0,
+        "numberOfAdvPayments": 0,
+        "nada": 0,
+        "msrp": 0,
+        "loanTotalPayment": 0,
+        "loanNumber": "",
+        "loanMonthlyPayment": 0.0,
+        "grossCapCost": 0.0,
+        "financeType": "CA",
+        "bookValue": 0,
+        "baloonResidualValue": 0.0,
+        "annualPercentageRate": 0
+    },
+    "fillers": [],
+    "contractNumber": "FinalTest22778",
+    "account": {
+        "workPhoneNumber": "480598-0000",
+        "stateCode": "AZ",
+        "rdgNumber": "N0202521",
+        "postalCode": "85284",
+        "name": "AUTONATION TOYOTA TEMPE",
+        "mobilePhoneNumber": "480598-0000",
+        "homePhoneNumber": "480598-0000",
+        "countryCode": "USA",
+        "city": "TEMPE",
+        "address1": "7970 SOUTH AUTOPLEX LOOP",
+        "accountNumber": "N0202521"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+true]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="291dcaaa-b01b-4cfd-a44b-3f585880fea9" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="9c653885-907c-435d-aba2-0ea6f9dcd901" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="a50bcc2a-5f11-40c8-8ae0-5909f042cb87" >
+						<ee:transform doc:name="Transform Message" doc:id="2cbabf21-ed6f-4bf2-a4aa-e8d23865adf9" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution><munit:validation>
+			<ee:transform doc:name="Prepare json response" doc:id="a0f76b3f-1177-44d2-ba08-4e46b885e732" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+---
+{
+    "status": "Failure",
+    "errors":  vars.javaPayload.validationErrors pluck({ 
+     key : $$,
+     message: $ 
+      })
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-that doc:id="735cae51-b864-4096-9f3a-28fbc0537237" is='#[MunitTools::equalTo("The vehicle type should be one of the following values: {W,P,C,T,S,M,R,A,CO,MH,PW,V,TT,FW,FC,SI,RH,RM,RP,RS,RT,HT}.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[0].message]" doc:name="Assert vehicle type"/>
+			<munit-tools:assert-that doc:id="0c37bee0-dbc4-42a3-9228-d5952bb68c44" is='#[MunitTools::equalTo("The finance details financing type should be one of the following values:{L,LE,C,LO,BL,F}.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[1].message]" doc:name="Assert financingType"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="Account-Mandatory-Fields-Test" doc:id="539efdc3-5338-4aeb-b8d5-da58851543c6" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="5d63f629-728e-4322-818f-0f197918efe4" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "vehicle": {
+        "VIN": "2GNAXYEX6K6259369",
+        "vehicleYear": "2019",
+        "vehicleType": "T",
+        "vehicleNewOrUsed": "N",
+        "vehicleCode": "CHEVROLET@EQUINOX@PREMIER@AWD@G@T@Y",
+        "vehicleClass": "H14",
+        "turbo": "Y",
+        "odometer": 600,
+        "model": "EQUINOX PREMIER",
+        "make": "CHEVROLET",
+        "inServiceDate": "2022-09-19",
+        "hasNavigation": "N",
+        "fuelType": "G",
+        "driveTrain": "AWD",
+        "commercialUsage": "N"
+    },
+    "sourceOriginator": "GLOW",
+    "quoteId": "a0Z5C000002SOumUAG",
+    "product": [
+        {
+            "termMonths": 60,
+            "termDistance": 999999,
+            "serviceInterval": 0.0,
+            "reportedCustomerCost": 390.0,
+            "reducedDeductible": 7,
+            "productDetailType": "PPM",
+            "productCode": "ANVCPT",
+            "productClass": "VCP Standard|111",
+            "numberOfServices": 7.0,
+            "isCombo": false,
+            "formNumber": "PWANVCPINCTFSR0120",
+            "deductible": 7,
+            "coverage": "VCP- Conventional",
+            "agreementStatus": "P"
+        }
+    ],
+    "holder": {
+        "customerStateCode": "IL",
+        "customerPostalCode": "60608",
+        "customerMiddleName": "Solutions",
+        "customerLastName": "Inc",
+        "customerHomePhoneNumber": "(555) 555-5555",
+        "customerFirstName": "TWG Innovative",
+        "customerEmail": "test@test.com",
+        "customerCountryCode": "USA",
+        "customerCity": "Chicago",
+        "customerAddress1": "P.O. Box 87719"
+    },
+    "fsm": {
+        "fsmLastName": "",
+        "fsmFirstName": ""
+    },
+    "financing": {
+        "totalAllowableMilesContract": 0,
+        "startDate": "2022-09-19",
+        "scheduledTerminationDate": "2027-09-19",
+        "numberOfSkipPayments": 0,
+        "numberOfAdvPayments": 0,
+        "nada": 0,
+        "msrp": 0,
+        "loanTotalPayment": 0,
+        "loanNumber": "",
+        "loanMonthlyPayment": 0.0,
+        "grossCapCost": 0.0,
+        "financeType": "C",
+        "bookValue": 0,
+        "baloonResidualValue": 0.0,
+        "annualPercentageRate": 0
+    },
+    "fillers": [],
+    "contractNumber": "FinalTest22778",
+    "account": {
+        "workPhoneNumber": "",
+        "stateCode": "",
+        "rdgNumber": "N0202521",
+        "postalCode": "",
+        "name": "",
+        "mobilePhoneNumber": "",
+        "homePhoneNumber": "",
+        "countryCode": "",
+        "city": "",
+        "address1": "",
+        "accountNumber": ""
+    }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+true]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="a99d5da0-ca0c-477f-b43b-b83f1cbfebf4" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="b2d23051-f6b6-41b6-baae-3e6551b6a923" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="48449a42-ea69-44a4-82b6-0a9813689beb" >
+						<ee:transform doc:name="Transform Message" doc:id="4788cfe7-d91f-470e-86d2-53b21867d663" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution><munit:validation>
+			<ee:transform doc:name="Prepare json response" doc:id="1e9e177d-f1ad-4331-8b93-0ec9b650b3a7" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+---
+{
+    "status": "Failure",
+    "errors":  vars.javaPayload.validationErrors pluck({ 
+     key : $$,
+     message: $ 
+      })
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-equals doc:name="Assert dealer name" doc:id="d39161be-ab48-4ce2-87d6-82525b06641a" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[0].message]" expected="The dealer's name cannot be null, blank nor contain whitespaces only."/>
+			<munit-tools:assert-equals doc:name="Assert city" doc:id="e1ddd865-4af5-4177-9684-1577b58be6da" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[1].message]" expected="The address city cannot be null, blank nor contain whitespaces only."/>
+		 	<munit-tools:assert-equals doc:name="Assert address1" doc:id="99ae38bc-365e-474c-bcf7-44722aa0ad43" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[2].message]" expected="The address' address1 cannot be null, blank nor contain whitespaces only."/>
+		 	<munit-tools:assert-equals doc:name="Assert postalCode" doc:id="35aeb80f-7045-4859-9531-58a948709ad4" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[3].message]" expected="The address postalCode cannot be null, blank nor contain whitespaces only."/>
+		 	<munit-tools:assert-equals doc:name="Assert stateCode" doc:id="13b2d977-59b7-46f6-8efc-5d7e40afb8e3" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[4].message]" expected="The address stateCode cannot be null, blank nor contain whitespaces only."/>
+		 	<munit-tools:assert-equals doc:name="Assert accountNumber" doc:id="8bd16d26-442c-44a9-bc46-c49b855eefb7" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[5].message]" expected="The dealer's internal id cannot be null, blank nor contain whitespaces only."/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="XML-Mandatory-Fields-Test" doc:id="e27b9749-db01-4555-87ac-b41b35d74736" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="ff14a818-c407-48ea-ae96-f1aa38504f00" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+  "Envelope": {
+    "Header": null,
+    "Body": {
+      "getForm": {
+        "arg0": {
+          "urlOnly": "false",
+          "quoteId": "03e2a3ef-19e0-4e6f-9c6d-bf1578a18b41",
+          "callingApp": {
+            "serviceSecurity": {
+              "token": "AVD",
+              "username": "GGHF"
+            },
+            "appId": "ODE",
+            "persist": "false",
+            "sourceSystem": "MR",
+            "businessUnit": "WLSC"
+          },
+          "dealer": {
+            "rdgId": "0ROH0005",
+            "internalId": "0ROH0005",
+            "name": null,
+            "address": {
+              "address1": "123 Street Suite 200",
+              "zip": null,
+              "city": "Hoffman Estates",
+              "state": "NC",
+              "country": "USA"
+            },
+            "fieldRep": "Test Name",
+            "phone": {
+              "type": "W",
+              "number": "1234568",
+              "areaCode": "847"
+            }
+          },
+          "vehicle": {
+            "type": "C",
+            "model": {
+              "code": "02565",
+              "name": "Aaccord",
+              "make": {
+                "name": "Honda"
+              }
+            },
+            "inServiceDate": "2018-08-13",
+            "odometerAtPurchase": "95",
+            "vin": "3FA6P0H78GR275140",
+            "vehicleClass": "F6",
+            "year": "2016",
+            "price": "24275",
+            "odometer": "95",
+            "isDiesel": "false",
+            "isFourByFour": "false",
+            "isTurbo": "false",
+            "isCar": "true",
+            "isTruck": "false",
+            "isCommercial": "false",
+            "isHybrid": "false",
+            "hasNavigation": "false",
+            "isNew": "true",
+            "maturityDate": "2021-08-13"
+          },
+          "contractNumber": "Test123",
+          "productDetails": {
+            "id": "AWLAR550",
+            "type": "WAR",
+            "productClass": "NA",
+            "form": {
+              "type": "S",
+              "number": "RAMAOVSCNTB1216",
+              "isCombo": "false"
+            },
+            "cost": "962",
+            "deductibleAmount": "100",
+            "disappearing": "false",
+            "reducing": "false",
+            "coverageCode": "PE",
+            "coverageName": "Platinum",
+            "termMonths": "36",
+            "termMiles": "45000",
+            "systemPin": null,
+            "coveragePlan": "false",
+            "totalAllowableMilesContract": "0",
+            "numberOfService": "0"
+          },
+          "contacts": {
+            "type": "B",
+            "firstName": "Rodney",
+            "lastName": "Butler ",
+            "middleInitialName": null,
+            "email": "Rodney@Butler.com",
+            "address": {
+              "address1": "869 South Kirkland Street",
+              "address2": "Suite 101",
+              "zip": "51106",
+              "city": "Sioux City",
+              "state": "IA",
+              "country": "USA"
+            },
+            "phones": {
+              "type": "H",
+              "number": "5979563",
+              "areaCode": "712"
+            }
+          },
+          "financeDetails": {
+            "financingType": "L",
+            "ballonResidualAmount": "0",
+            "financedAmount": "24275",
+            "apr": "7",
+            "paymentAmount": "12600",
+            "numberOfPayments": "36",
+            "msrp": "25000",
+            "firstPaymentDate": "2018-10-07",
+            "leaseCapAmount": "0",
+            "period": "0",
+            "grossCapCost": "0",
+            "scheduledTerminationDate": null,
+            "monthlyPaymentAmount": "350"
+          },
+          "fillers": {
+            "key": "SEND_SIGNATURE",
+            "value": "True"
+          }
+        }
+      }
+    }
+  }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+false]]></ee:set-variable>
+				
+</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="legacyForm Var" doc:id="0e80cb9f-1ceb-4635-a321-79c61c4354a4" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="legacyForm" ><![CDATA[%dw 2.0
+output application/java
+
+---
+using (form = payload.Envelope.Body.getForm.arg0) {
+	urlOnly: form.urlOnly,
+	contractNumber: form.contractNumber,
+	quoteId: form.quoteId,
+	dealer: form.dealer,
+	callingApp: form.callingApp,
+	vehicle: form.vehicle,
+	product: form.*productDetails,
+	contacts: form.*contacts,
+	financeDetails: form.financeDetails,
+	filler:form.*fillers,
+	xmlInput: true
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="b5947300-a2dd-40a0-9f51-ee758fc3357a" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="6ed36063-8990-46ba-814b-9e2b48c3064f" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="968fac98-5349-4b18-82fb-d1f45921b595" >
+						<ee:transform doc:name="Transform Message" doc:id="75ef6105-099c-4d88-bc45-7cf0065f29d1" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<ee:transform doc:name="Prepare Xml Response" doc:id="f09a9a46-d9bd-4aa5-b3f5-27a5c9ebb01e" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                       (vars.javaPayload.validationErrors mapObject errors:{ 
+             
+              key : $$,
+        message: $ 
+        
+                     })
+}
+}
+}
+}
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-equals doc:name="Assert postal code" doc:id="1805ac36-a04c-4576-8a9f-7815b014793a" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[0]]" expected="The address postalCode cannot be null, blank nor contain whitespaces only."/>
+            <munit-tools:assert-equals doc:name="Assert postal code" doc:id="02a6da83-ff42-4c39-8239-3b682c34a894" actual="#[%dw 2.0&#10;output application/json&#10;---&#10;(payload.Envelope.Body.getFormResponse.'return'.status.*errors.message)[1]]" expected="The dealer's name cannot be null, blank nor contain whitespaces only."/>
+       </munit:validation>
+	
+</munit:test>
+	<munit:test name="Holder-Mandatory-Fields-Test" doc:id="c790b83e-ca8d-44bf-b97d-819b3780a72c" description="Test" timeOut="300000">
+		<munit:execution >
+			<ee:transform doc:name="Payload" doc:id="69984b58-57d1-4b56-b8a0-0cdc494fac99" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "vehicle": {
+        "VIN": "2GNAXYEX6K6259369",
+        "vehicleYear": "2019",
+        "vehicleType": "T",
+        "vehicleNewOrUsed": "N",
+        "vehicleCode": "CHEVROLET@EQUINOX@PREMIER@AWD@G@T@Y",
+        "vehicleClass": "H14",
+        "turbo": "Y",
+        "odometer": 600,
+        "model": "EQUINOX PREMIER",
+        "make": "CHEVROLET",
+        "inServiceDate": "2022-09-19",
+        "hasNavigation": "N",
+        "fuelType": "G",
+        "driveTrain": "AWD",
+        "commercialUsage": "N"
+    },
+    "sourceOriginator": "GLOW",
+    "quoteId": "a0Z5C000002SOumUAG",
+    "product": [
+        {
+            "termMonths": 60,
+            "termDistance": 999999,
+            "serviceInterval": 0.0,
+            "reportedCustomerCost": 390.0,
+            "reducedDeductible": 7,
+            "productDetailType": "PPM",
+            "productCode": "ANVCPT",
+            "productClass": "VCP Standard|111",
+            "numberOfServices": 7.0,
+            "isCombo": false,
+            "formNumber": "PWANVCPINCTFSR0120",
+            "deductible": 7,
+            "coverage": "VCP- Conventional",
+            "agreementStatus": "P"
+        }
+    ],
+    "holder": {
+        "customerStateCode": "",
+        "customerPostalCode": "",
+        "customerMiddleName": "Solutions",
+        "customerLastName": "",
+        "customerHomePhoneNumber": "",
+        "customerFirstName": "",
+        "customerEmail": "test@test.com",
+        "customerCountryCode": "",
+        "customerCity": "",
+        "customerAddress1": ""
+    },
+    "fsm": {
+        "fsmLastName": "",
+        "fsmFirstName": ""
+    },
+    "financing": {
+        "totalAllowableMilesContract": 0,
+        "startDate": "2022-09-19",
+        "scheduledTerminationDate": "2027-09-19",
+        "numberOfSkipPayments": 0,
+        "numberOfAdvPayments": 0,
+        "nada": 0,
+        "msrp": 0,
+        "loanTotalPayment": 0,
+        "loanNumber": "",
+        "loanMonthlyPayment": 0.0,
+        "grossCapCost": 0.0,
+        "financeType": "C",
+        "bookValue": 0,
+        "baloonResidualValue": 0.0,
+        "annualPercentageRate": 0
+    },
+    "fillers": [],
+    "contractNumber": "FinalTest22778",
+    "account": {
+        "workPhoneNumber": "480598-0000",
+        "stateCode": "AZ",
+        "rdgNumber": "N0202521",
+        "postalCode": "85284",
+        "name": "AUTONATION TOYOTA TEMPE",
+        "mobilePhoneNumber": "480598-0000",
+        "homePhoneNumber": "480598-0000",
+        "countryCode": "USA",
+        "city": "TEMPE",
+        "address1": "7970 SOUTH AUTOPLEX LOOP",
+        "accountNumber": "N0202521"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="stampSignatureVar" ><![CDATA[%dw 2.0
+output application/java
+---
+"false"]]></ee:set-variable>
+					<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+true]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<try doc:name="Try" doc:id="7e55bb8f-d502-4248-889b-d75a9bf10dd4" >
+				<flow-ref doc:name="Flow-ref to system-create-form-flow" doc:id="3039f512-c4c3-48e6-90a1-7fcd1412dff0" name="system-create-form-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="cf04e989-62c5-4ab8-b2ee-24328a5a62e2" >
+						<ee:transform doc:name="Transform Message" doc:id="6423c2bb-4fef-412f-84a2-2051e57efdd5" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution><munit:validation>
+			<ee:transform doc:name="Prepare json response" doc:id="cd3dd506-f9cf-4d49-b819-a94bdf3dd97d" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+---
+{
+    "status": "Failure",
+    "errors":  vars.javaPayload.validationErrors pluck({ 
+     key : $$,
+     message: $ 
+      })
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<munit-tools:assert-that doc:id="481c4138-156a-4429-ba4d-e372ddc69b9a" is='#[MunitTools::equalTo("The contact first name cannot be null, blank nor contain whitespaces only.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[0].message]" doc:name="Assert firstName"/>
+			<munit-tools:assert-that doc:id="278ba173-9e29-4ecb-9c12-09f24a84c231" is='#[MunitTools::equalTo("The contact last name cannot be null, blank or contain whitespaces only for non-lienholders.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[1].message]" doc:name="Assert lastName"/>
+			<munit-tools:assert-that doc:id="7a3098b0-9d39-472d-84aa-976c31bd68de" is='#[MunitTools::equalTo("The address city cannot be null, blank nor contain whitespaces only.")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[2].message]" doc:name="Assert city"/>
+			<munit-tools:assert-that doc:id="666b3e08-837b-4e8e-85c6-668c0ac3b13b" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[4].message]" is='#[MunitTools::equalTo("The address postalCode cannot be null, blank nor contain whitespaces only.")]' doc:name="Assert postalCode"/>
+			<munit-tools:assert-that doc:id="f3b5816c-0348-4ad5-8c7c-d078209482c3" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.errors[5].message]" is='#[MunitTools::equalTo("The address stateCode cannot be null, blank nor contain whitespaces only.")]' doc:name="Assert stateCode"/>
+		</munit:validation>
+	</munit:test>
+</mule>

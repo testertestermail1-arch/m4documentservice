@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="experience-forms-internal-api-test-suite.xml" />
+	<munit:test name="experience-forms-internal-api-test-suite-get:\springcm\healthcheck:forms-internal-api-configTest" doc:id="27eaae9d-4a3c-4282-abd0-fc72e1a2ee08" description="Test">
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="System Docusign Authentication FLow" doc:id="c2f8d5cd-1b79-4d0d-a714-d533bfed1930" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="System Docusign Authentication FLow" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    "access_token": "7b2ce62bcbe544f7aeda41aae42898fefOp4T1GCwbTWyYqxmNa5mFTXKzEc4zZRNaNxJyghTp7R2qABw7zm0oyPsJ1rrajg8pzmwBdB6ogo53yB5LmWkI06g3rt9CZP",&#10;    "token_type": "bearer",&#10;    "expires_in": 3599.0,&#10;    "api_base_url": "https://apiuatna11.springcm.com"&#10;}]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="system-springCM-get-hardCopy-folderId-flow" doc:id="3ef65627-cc88-4768-9741-44760a917720" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="system-springCM-get-hardCopy-folderId-flow" attributeName="name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:attributes value="#[{&#10;	statusCode : 200&#10;}]" mediaType="application/java" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\springcm\healthcheck:forms-internal-api-config" doc:id="8bc7451d-f8e6-4355-b272-8dd3d630d3d8" name="get:\springcm\healthcheck:forms-internal-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="8b6fc571-3d70-42f5-b175-89ae75751cfb" is='#[MunitTools::equalTo("request process successfully")]' expression="#[payload.message]"/>
+		</munit:validation>
+	
+</munit:test>
+
+
+</mule>

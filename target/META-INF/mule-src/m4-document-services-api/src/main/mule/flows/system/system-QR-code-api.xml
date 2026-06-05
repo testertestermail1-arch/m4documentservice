@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	<sub-flow name="system-QR-code-flow" doc:id="3ccc14ab-92dc-43fb-92bb-d0af43efc17a" >
+		<logger level="INFO" doc:name="Stage Logger" doc:id="80c587b6-9d23-4529-960f-e85caa75f1cf" message='Message Id : #[correlationId] || Before QR code API call || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+		<try doc:name="Try" doc:id="b0426434-3607-4042-985e-3db1c00b9ee5" >
+			<http:request method="POST" doc:name="Call PGA QR Code API" doc:id="8f1e9fe6-6b66-4cf9-b813-efd39ea560c0" config-ref="QR_Code_Request_configuration" path="${qr.code.implementation.path}" responseTimeout="30000">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	Accept : 'image/png',
+	key : p('qr.code.implementation.key')
+}]]]></http:headers>
+		</http:request>
+			<ee:transform doc:name="Decode Base64" doc:id="a97b657b-534e-44a6-a62b-27124b708b4d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+var img = readUrl(payload, "application/octet-stream")
+output text/plain
+---
+toBase64(img as Binary)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="b384295b-585c-448a-b4f2-5e67e55abc71" >
+					<ee:transform doc:name="Error Response" doc:id="597aa19c-045d-44e7-acfd-7b7397bff5de" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+'error']]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<ee:transform doc:name="qrCode URL" doc:id="03c1451c-832b-411c-abc9-7f1bcae298d9">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+qrCodeUrl:payload	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Stage Logger" doc:id="f1984024-1a8e-47b3-af5f-813b0e524496" message='Message Id : #[correlationId] ||After QR code API call || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' />
+	</sub-flow>
+</mule>

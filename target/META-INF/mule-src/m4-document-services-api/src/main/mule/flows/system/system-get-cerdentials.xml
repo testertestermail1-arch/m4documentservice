@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xml-module="http://www.mulesoft.org/schema/mule/xml-module" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/xml-module http://www.mulesoft.org/schema/mule/xml-module/current/mule-xml-module.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="system-get-cerdentials-flow" doc:id="ad126ba4-789b-4326-914b-abc237d88145" >
+		<logger level="INFO" doc:name="Before User Name DB Lookup" doc:id="5b4a04bd-64eb-42d1-8a70-9318384f8eea" message='Message Id : #[correlationId] ||  Before User Name DB Lookup || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+		<ee:transform doc:name="Frame Get User Credentials Request" doc:id="5dd53062-d98d-421e-9e32-7d12499a97a2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	userNameSplit: vars.userName,
+	tokenSplit: vars.token
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="emptyCache" ><![CDATA[%dw 2.0
+output application/java
+---
+'emptyCache']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:cache doc:name="Cache" doc:id="54e3037f-6174-4c9a-a4ae-c063cfdb4548" cachingStrategy-ref="Caching_Strategy_for_user_validation">
+			<http:request method="POST" doc:name="Call Get User Credentials API" doc:id="f7d7491a-4713-4c34-9d77-b038454ab4c4" config-ref="Vehicle_Request_Configuration" path="${api.userDetails.internal.listener.path}" />
+		</ee:cache>
+		<ee:transform doc:name="Set User Credential Response" doc:id="844a1a63-ac06-44a7-9139-b9aa1169c3a0">
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="After User Name DB Lookup" doc:id="c1701f40-1197-4372-b25b-77d32cc01445" message='Message Id : #[correlationId] || After User Name DB Lookup || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+	
+</sub-flow>
+
+</mule>

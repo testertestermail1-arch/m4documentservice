@@ -1,0 +1,1116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="service-forms-test-suite.xml"/>
+	<munit:test name="service-forms-test-suite-root-fields-mandatory-validation" doc:id="22bb0b5b-fba8-4eb9-bd9a-ad9f6ac50e5c">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="1b741968-ba80-423b-a9e8-8d7611d3cd76">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "",
+    "urlOnly": "",
+    "fileType": "pdf",
+    "sendSignature": "false",
+    "contractNumber":"",
+    "account": {
+        "accountNumber": "GDSMAPI",
+        "name": "Affinity Brokerage, LLC",
+        "address1": "64 Inverness Drive East",
+        "address2": "",
+        "city": "Englewood",
+        "stateCode": "CO",
+        "countryCode": "USA",
+        "postalCode": "80112"
+    },
+    "vehicle": {
+        "vehicleCode": "NEWMAR@BAYSTAR3124@7.3@RWD@G@RM@N",
+        "vehicleType": "RH",
+        "model": "AVENGER 26BH",
+        "make": "PRIME TIME MANUFACTURING",
+        "inServiceDate": "2020-10-01",
+        "msrp": 28361.29,
+        "odometer": 0,
+        "VIN": "99999999999999999",
+        "vehicleClass": "TT",
+        "vehicleYear": 2018,
+        "vehiclePurchasePrice": 28361.29,
+        "fuelType": "G",
+        "driveTrain": "FWD",
+        "vehicleNewOrUsed": "N"
+    },
+    "product": {
+        "productDetailType": "WAR",
+        "productClass": "GoodSam RV Motorhome",
+        "agreementStatus": "P",
+        "formNumber": "GS200006S-0321_TX-GS200032I-0220",
+        "deductibleBase": 500,
+        "deductibleReduced": 500,
+        "coverage": "Diamond New",
+        "termMonths": 60,
+        "optionalCoverages": [
+            {
+                "coverageType": "TIRE",
+                "coverageAmount": 66.0
+            }
+        ]
+    },
+    "holder": {
+        "customerFirstName": "IN",
+        "customerLastName": "SALESTAX",
+        "customerAddress1": "1002 LISMORE LN APT F",
+        "customerCity": "INDIANAPOLIS",
+        "customerStateCode": "IN",
+        "customerPostalCode": "46227"
+    },
+    "financing": {
+        "financeType": "Cash"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="55c3f8f5-6138-4419-ad01-2d1d72b7a78e">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="0bee7aa0-152b-41b9-8fe1-48d6926e093a" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="d0423a3c-5071-4f30-8871-2ff394c5af05">
+						<ee:transform doc:name="Transform Message" doc:id="145348b1-e5d9-41df-b3ef-6fe934fffbe3">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="835338fc-4636-431f-bd41-544b3aaadfca" is='#[MunitTools::equalTo("Required Value is Missing for [sourceOriginator]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert sourceOrignator"/>
+			<munit-tools:assert-that doc:id="c68a6482-fd55-4442-a777-bfbb6b38fda3" is='#[MunitTools::equalTo("Required Value is Missing for [urlOnly]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[1]]" doc:name="Assert urlOnly"/>
+			<munit-tools:assert-that doc:id="42081c63-6e75-4eab-a1b8-a37f9ca49e22" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" is='#[MunitTools::equalTo("Required Value is Missing for [contractNumber]")]' doc:name="Assert contractNumber"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-root-fields-format-validation" doc:id="a3079186-8e06-43bd-83dd-9913c998d30a">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="4b92ceb1-233b-4f66-82ff-41b02b5a6781">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "GOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAMGOODSAM",
+    "urlOnly": "Yes",
+    "fileType": "pdf",
+    "sendSignature": "false",
+    "contractNumber":"234323432123212323qw3e43212323",
+    "account": {
+        "accountNumber": "GDSMAPI",
+        "name": "Affinity Brokerage, LLC",
+        "address1": "64 Inverness Drive East",
+        "address2": "",
+        "city": "Englewood",
+        "stateCode": "CO",
+        "countryCode": "USA",
+        "postalCode": "80112"
+    },
+    "vehicle": {
+        "vehicleCode": "NEWMAR@BAYSTAR3124@7.3@RWD@G@RM@N",
+        "vehicleType": "RH",
+        "model": "AVENGER 26BH",
+        "make": "PRIME TIME MANUFACTURING",
+        "inServiceDate": "2020-10-01",
+        "msrp": 28361.29,
+        "odometer": 0,
+        "VIN": "99999999999999999",
+        "vehicleClass": "TT",
+        "vehicleYear": 2018,
+        "vehiclePurchasePrice": 28361.29,
+        "fuelType": "G",
+        "driveTrain": "FWD",
+        "vehicleNewOrUsed": "N"
+    },
+    "product": {
+        "productDetailType": "WAR",
+        "productClass": "GoodSam RV Motorhome",
+        "agreementStatus": "P",
+        "formNumber": "GS200006S-0321_TX-GS200032I-0220",
+        "deductibleBase": 500,
+        "deductibleReduced": 500,
+        "coverage": "Diamond New",
+        "termMonths": 60,
+        "optionalCoverages": [
+            {
+                "coverageType": "TIRE",
+                "coverageAmount": 66.0
+            }
+        ]
+    },
+    "holder": {
+        "customerFirstName": "IN",
+        "customerLastName": "SALESTAX",
+        "customerAddress1": "1002 LISMORE LN APT F",
+        "customerCity": "INDIANAPOLIS",
+        "customerStateCode": "IN",
+        "customerPostalCode": "46227"
+    },
+    "financing": {
+        "financeType": "Cash"
+    }
+}
+
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="660c9c94-61cd-4d44-8a3f-d2f820c28be5">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="fa67e044-3448-4498-a5c0-1b4498064aed" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="03260ae0-b769-4b8f-b797-98b62b3ab645">
+						<ee:transform doc:name="Transform Message" doc:id="e2e271df-fe7d-49f2-bbb3-7f36382929f9">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="e88b36a4-412c-424d-8d93-4c3e5cb37376" is='#[MunitTools::equalTo("Invalid Value Received for [sourceOriginator]. Allowed Length:25")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert sourceOrignator"/>
+			<munit-tools:assert-that doc:id="3b4045f0-5a67-49a4-a8ca-447de383f009" is='#[MunitTools::equalTo("Invalid Value Received for [urlOnly]. Allowed Length:1 Allowed Values:(Y,N)")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[1]]" doc:name="Assert urlOnly"/>
+			<munit-tools:assert-that doc:id="794fbb34-03ef-48ef-89a3-37a62378c5a3" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" is='#[MunitTools::equalTo("Invalid Value Received for [contractNumber]. Allowed Length:25")]' doc:name="Assert contractNumber"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-account-fields-mandatory-validation" doc:id="469322cd-3e7f-4ecc-8ab7-18f604e3aa29">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="830836d9-08d7-4960-b340-d1e4d1ef7400">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "GOODSAM",
+    "urlOnly": "Y",
+    "fileType": "pdf",
+    "sendSignature": "false",
+    "account": {
+        "accountNumber": "",
+        "name": "",
+        "address1": "",
+        "address2": "",
+        "city": "Englewood",
+        "stateCode": "",
+        "countryCode": "USA",
+        "postalCode": ""
+    },
+    "vehicle": {
+        "vehicleCode": "NEWMAR@BAYSTAR3124@7.3@RWD@G@RM@N",
+        "vehicleType": "RH",
+        "model": "AVENGER 26BH",
+        "make": "PRIME TIME MANUFACTURING",
+        "inServiceDate": "2020-10-01",
+        "msrp": 28361.29,
+        "odometer": 0,
+        "VIN": "99999999999999999",
+        "vehicleClass": "TT",
+        "vehicleYear": 2018,
+        "vehiclePurchasePrice": 28361.29,
+        "fuelType": "G",
+        "driveTrain": "FWD",
+        "vehicleNewOrUsed": "N"
+    },
+    "product": {
+        "productDetailType": "WAR",
+        "productClass": "GoodSam RV Motorhome",
+        "agreementStatus": "S",
+        "formNumber": "GS200006S-0321_TX-GS200032I-0220",
+        "deductibleBase": 500,
+        "deductibleReduced": 500,
+        "coverage": "Diamond New",
+        "termMonths": 60,
+        "optionalCoverages": [
+            {
+                "coverageType": "TIRE",
+                "coverageAmount": 66.0
+            }
+        ]
+    },
+    "holder": {
+        "customerFirstName": "IN",
+        "customerLastName": "SALESTAX",
+        "customerAddress1": "1002 LISMORE LN APT F",
+        "customerCity": "INDIANAPOLIS",
+        "customerStateCode": "IN",
+        "customerPostalCode": "46227"
+    },
+    "financing": {
+        "financeType": "Cash"
+    }
+}
+
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="f0047fca-a2ea-4ee7-85f9-3112f40df2be">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="d9cc3923-5783-40cb-8481-dcca8570578f" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="52c2ae82-324c-4e05-8056-f7b18eb7cbc0">
+						<ee:transform doc:name="Transform Message" doc:id="3078d318-24b7-405d-ba6f-b600bf158e17">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="5eaa2762-f06d-4207-8d43-91bda86fd21b" is='#[MunitTools::equalTo("Required Value is Missing for [accountNumber]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert accountNumber"/>
+			<munit-tools:assert-that doc:id="48b75c74-d695-456c-bb15-8e2149de354d" is='#[MunitTools::equalTo("Required Value is Missing for [name]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[1]]" doc:name="Assert name"/>
+			<munit-tools:assert-that doc:id="bfeed213-64f4-4a8e-9290-299b68219c08" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" is='#[MunitTools::equalTo("Required Value is Missing for [address1]")]' doc:name="Assert address1"/>
+			<munit-tools:assert-that doc:name="Assert stateCode" doc:id="8d2ccf2e-76ba-439f-90c9-c9f203da8223" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[3]]" is='#[MunitTools::equalTo("Required Value is Missing for [stateCode]")]'/>
+			<munit-tools:assert-that doc:name="Assert postalCode" doc:id="7db0a3ce-3808-4506-ba34-6cd9edc97f42" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[4]]" is='#[MunitTools::equalTo("Required Value is Missing for [postalCode]")]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-account-fields-format-validation" doc:id="1f9d56c1-2f88-4fc8-99a3-55fce2b366fc">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="1d03a04f-7d1c-4469-bdfa-f3eeff480bec">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "GOODSAM",
+    "urlOnly": "Y",
+    "fileType": "pdf",
+    "sendSignature": "false",
+    "account": {
+        "accountNumber": "GDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPIGDSMAPI",
+        "name": "Affinity Brokerage, LLCAffinity Brokerage, LLCAffinity Brokerage, LLCAffinity Brokerage, LLCAffinity Brokerage, LLCAffinity Brokerage, LLCAffinity Brokerage, LLCAffinity Brokerage, LLC",
+        "address1": "64 Inverness Drive East64 Inverness Drive East64 Inverness Drive East64 Inverness Drive East64 Inverness Drive East64 Inverness Drive East64 Inverness Drive East64 Inverness Drive East64 Inverness Drive East64 Inverness Drive East64 Inverness Drive East",
+        "address2": "",
+        "city": "Englewood",
+        "stateCode": "COA",
+        "countryCode": "USA",
+        "postalCode": "80112121232123"
+    },
+    "vehicle": {
+        "vehicleCode": "NEWMAR@BAYSTAR3124@7.3@RWD@G@RM@N",
+        "vehicleType": "RH",
+        "model": "AVENGER 26BH",
+        "make": "PRIME TIME MANUFACTURING",
+        "inServiceDate": "2020-10-01",
+        "msrp": 28361.29,
+        "odometer": 0,
+        "VIN": "99999999999999999",
+        "vehicleClass": "TT",
+        "vehicleYear": 2018,
+        "vehiclePurchasePrice": 28361.29,
+        "fuelType": "G",
+        "driveTrain": "FWD",
+        "vehicleNewOrUsed": "N"
+    },
+    "product": {
+        "productDetailType": "WAR",
+        "productClass": "GoodSam RV Motorhome",
+        "agreementStatus": "S",
+        "formNumber": "GS200006S-0321_TX-GS200032I-0220",
+        "deductibleBase": 500,
+        "deductibleReduced": 500,
+        "coverage": "Diamond New",
+        "termMonths": 60,
+        "optionalCoverages": [
+            {
+                "coverageType": "TIRE",
+                "coverageAmount": 66.0
+            }
+        ]
+    },
+    "holder": {
+        "customerFirstName": "IN",
+        "customerLastName": "SALESTAX",
+        "customerAddress1": "1002 LISMORE LN APT F",
+        "customerCity": "INDIANAPOLIS",
+        "customerStateCode": "IN",
+        "customerPostalCode": "46227"
+    },
+    "financing": {
+        "financeType": "Cash"
+    }
+}
+
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="c954e2c5-1e8f-44fc-8123-d9bac6b9e58d">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="eb63cb2f-29e0-4bac-8475-dbfa293199c7" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f8c5e56f-31b3-4b85-b289-e77048e7e5bf">
+						<ee:transform doc:name="Transform Message" doc:id="996bdab3-41ae-4b26-9250-014f5351a46b">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="1bf40d25-f984-4915-aa1f-572f4895e568" is='#[MunitTools::equalTo("Invalid Value Received for [accountNumber]. Allowed Length:50")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert accountNumber"/>
+			<munit-tools:assert-that doc:id="f438df61-99e7-48e5-bd18-e47238923700" is='#[MunitTools::equalTo("Invalid Value Received for [name]. Allowed Length:100")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[1]]" doc:name="Assert name"/>
+			<munit-tools:assert-that doc:id="f5e2019a-f15a-4429-913b-f0dd45e7a75c" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" is='#[MunitTools::equalTo("Invalid Value Received for [address1]. Allowed Length:100")]' doc:name="Assert address1"/>
+			<munit-tools:assert-that doc:name="Assert stateCode" doc:id="7120bae1-51a2-45ca-b805-c7765bc32192" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[3]]" is='#[MunitTools::equalTo("Invalid Value Received for [stateCode]. Allowed Length:2")]'/>
+			<munit-tools:assert-that doc:name="Assert postalCode" doc:id="45510980-672d-40f6-8183-f35c84ed1ea3" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[4]]" is='#[MunitTools::equalTo("Invalid Value Received for [postalCode]. Allowed Length:10")]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-vehicle-fields-mandatory-validation" doc:id="02f75061-bfa5-4448-9f27-795ce126afdd">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="e95bd7d7-040b-485d-a07b-8445bab449cf">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "GOODSAM",
+    "urlOnly": "Y",
+    "fileType": "pdf",
+    "sendSignature": "false",
+    "account": {
+        "accountNumber": "GDSMAPI",
+        "name": "Affinity Brokerage, LLC",
+        "address1": "64 Inverness Drive East",
+        "address2": "",
+        "city": "Englewood",
+        "stateCode": "CO",
+        "countryCode": "USA",
+        "postalCode": "80112"
+    },
+    "vehicle": {
+        "vehicleCode": "NEWMAR@BAYSTAR3124@7.3@RWD@G@RM@N",
+        "vehicleType": "",
+        "model": "",
+        "make": "",
+        "inServiceDate": "",
+        "msrp": 28361.29,
+        "odometer": null,
+        "VIN": "",
+        "vehicleClass": "",
+        "vehicleYear": null,
+        "vehiclePurchasePrice": 28361.29,
+        "fuelType": "G",
+        "driveTrain": "FWD",
+        "vehicleNewOrUsed": "N"
+    },
+    "product": {
+        "productDetailType": "WAR",
+        "productClass": "GoodSam RV Motorhome",
+        "agreementStatus": "S",
+        "formNumber": "GS200006S-0321_TX-GS200032I-0220",
+        "deductibleBase": 500,
+        "deductibleReduced": 500,
+        "coverage": "Diamond New",
+        "termMonths": 60,
+        "optionalCoverages": [
+            {
+                "coverageType": "TIRE",
+                "coverageAmount": 66.0
+            }
+        ]
+    },
+    "holder": {
+        "customerFirstName": "IN",
+        "customerLastName": "SALESTAX",
+        "customerAddress1": "1002 LISMORE LN APT F",
+        "customerCity": "INDIANAPOLIS",
+        "customerStateCode": "IN",
+        "customerPostalCode": "46227"
+    },
+    "financing": {
+        "financeType": "Cash"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="0f55d358-5441-4dc5-a427-d05c23928259">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="bfa8ed21-1de9-40cf-a4a6-7d2257d3c4a0" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="1a4bd9b0-487d-47d0-b6d3-4bffd38c1b4b">
+						<ee:transform doc:name="Transform Message" doc:id="baa45307-c2b2-48e0-ad33-031a0dc9e255">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="c1992ef9-c985-482b-a190-5df7311b9861" is='#[MunitTools::equalTo("Required Value is Missing for [odometer]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert odometer"/>
+			<munit-tools:assert-that doc:id="bbfca90c-242d-425f-ac86-a1b91157ce42" is='#[MunitTools::equalTo("Required Value is Missing for [VIN]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[1]]" doc:name="Assert VIN"/>
+			<munit-tools:assert-that doc:id="7aa15428-cc7a-4070-a8e7-90e7565e47db" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" is='#[MunitTools::equalTo("Required Value is Missing for [vehicleYear]")]' doc:name="Assert vehicleYear"/>
+			<munit-tools:assert-that doc:name="Assert vehicleType" doc:id="5882a687-1741-4b5f-aed8-475e97ccab10" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[3]]" is='#[MunitTools::equalTo("Required Value is Missing for [vehicleType]")]'/>
+			<munit-tools:assert-that doc:name="Assert model" doc:id="a30389ba-e280-4e69-a474-dafa2303d569" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[4]]" is='#[MunitTools::equalTo("Required Value is Missing for [model]")]'/>
+			<munit-tools:assert-that doc:name="Assert make" doc:id="12f5d616-d23a-4561-9b64-835f95ff7d97" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[5]]" is='#[MunitTools::equalTo("Required Value is Missing for [make]")]'/>
+			<munit-tools:assert-that doc:name="Assert inServiceDate" doc:id="06e4297c-00de-4cad-8275-cc931cc83c99" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[6]]" is='#[MunitTools::equalTo("Required Value is Missing for [inServiceDate]")]'/>
+			<munit-tools:assert-that doc:name="Assert vehicleClass" doc:id="97bf05dd-31e2-4cdb-b3a1-f2554e0698c8" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[7]]" is='#[MunitTools::equalTo("Required Value is Missing for [vehicleClass]")]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-vehicle-fields-format-validation" doc:id="56b3abf6-9963-49b7-b92f-ebc5647c79c6">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="424ad154-3529-40c6-ac9b-a3582d8d2ceb">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "GOODSAM",
+    "urlOnly": "Y",
+    "fileType": "pdf",
+    "sendSignature": "false",
+    "account": {
+        "accountNumber": "GDSMAPI",
+        "name": "Affinity Brokerage, LLC",
+        "address1": "64 Inverness Drive East",
+        "address2": "",
+        "city": "Englewood",
+        "stateCode": "CO",
+        "countryCode": "USA",
+        "postalCode": "80112"
+    },
+    "vehicle": {
+        "vehicleCode": "NEWMAR@BAYSTAR3124@7.3@RWD@G@RM@N",
+        "vehicleType": "RHRHRHRHRHRHRHRHRHRHRHRHRHRHRHRHRHRH",
+        "model": "AVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BHAVENGER 26BH",
+        "make": "PRIME TIME MANUFACTURINGPRIME TIME MANUFACTURINGPRIME TIME MANUFACTURINGPRIME TIME MANUFACTURINGPRIME TIME MANUFACTURINGPRIME TIME MANUFACTURINGPRIME TIME MANUFACTURINGPRIME TIME MANUFACTURINGPRIME TIME MANUFACTURINGPRIME TIME MANUFACTURINGPRIME TIME MANUFACTURING",
+        "inServiceDate": "21222-10-01",
+        "msrp": 28361.29,
+        "odometer": 1232121212,
+        "VIN": "9999999999999999999999999999999999",
+        "vehicleClass": "TTTTTTTTTTTTTTTTTTTTTTTTTTT",
+        "vehicleYear": 20181,
+        "vehiclePurchasePrice": 28361.29,
+        "fuelType": "G",
+        "driveTrain": "FWD",
+        "vehicleNewOrUsed": "N"
+    },
+    "product": {
+        "productDetailType": "WAR",
+        "productClass": "GoodSam RV Motorhome",
+        "agreementStatus": "S",
+        "formNumber": "GS200006S-0321_TX-GS200032I-0220",
+        "deductibleBase": 500,
+        "deductibleReduced": 500,
+        "coverage": "Diamond New",
+        "termMonths": 60,
+        "optionalCoverages": [
+            {
+                "coverageType": "TIRE",
+                "coverageAmount": 66.0
+            }
+        ]
+    },
+    "holder": {
+        "customerFirstName": "IN",
+        "customerLastName": "SALESTAX",
+        "customerAddress1": "1002 LISMORE LN APT F",
+        "customerCity": "INDIANAPOLIS",
+        "customerStateCode": "IN",
+        "customerPostalCode": "46227"
+    },
+    "financing": {
+        "financeType": "Cash"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="f7bd85f3-48b0-4529-8bae-d7227f9e2002">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="35fdd3f4-9cee-4323-85f3-057be1edcad6" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="9b6acb15-d91c-4a07-9489-b99f0b51ee67">
+						<ee:transform doc:name="Transform Message" doc:id="c7e5f2e9-8242-42ed-b81b-97eb75eb874b">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="e0a4a116-fa14-4100-8afd-38f0257b2b0b" is='#[MunitTools::equalTo("Invalid Value Received for [odometer].Please enter a positive integer with Precision:6")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert odometer"/>
+			<munit-tools:assert-that doc:id="6aecc288-ec0e-49ac-b66d-269c9aaec8d5" is='#[MunitTools::equalTo("Invalid Value Received for [vin]. Allowed Length:17")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[1]]" doc:name="Assert VIN"/>
+			<munit-tools:assert-that doc:id="2fddbcb8-ac99-4752-a2ce-e9349215cac1" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" is='#[MunitTools::equalTo("Invalid Value Received for [vehicleYear].Please enter a positive integer with Precision:4")]' doc:name="Assert vehicleYear"/>
+			<munit-tools:assert-that doc:name="Assert vehicleType" doc:id="7235572b-b875-45ab-9a0b-63bcf6a19547" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[3]]" is='#[MunitTools::equalTo("Invalid Value Received for [vehicleType]. Allowed Length:25")]'/>
+			<munit-tools:assert-that doc:name="Assert model" doc:id="6d8fd5ab-4889-4a07-aa42-6f83fe2772dc" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[4]]" is='#[MunitTools::equalTo("Invalid Value Received for [model]. Allowed Length:100")]'/>
+			<munit-tools:assert-that doc:name="Assert make" doc:id="0e807fec-99e1-4292-bf12-0a4c9d02a29a" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[5]]" is='#[MunitTools::equalTo("Invalid Value Received for [make]. Allowed Length:100")]'/>
+			<munit-tools:assert-that doc:name="Assert inServiceDate" doc:id="803fb9a3-e68a-4980-9948-e4783d47de5f" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[6]]" is='#[MunitTools::equalTo("Invalid Value Received for [inServiceDate]. Allowed Length:10")]'/>
+			<munit-tools:assert-that doc:name="Assert vehicleClass" doc:id="b33ea7db-104e-48ec-b9fc-2260909d0c4e" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[7]]" is='#[MunitTools::equalTo("Invalid Value Received for [vehicleClass]. Allowed Length:10")]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-product-fields-mandatory-validation" doc:id="9936826f-f384-4ad4-87e2-2427de839c0f">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="12aa7b67-83d4-477a-af7d-0dd89b212428">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "GOODSAM",
+    "urlOnly": "Y",
+    "fileType": "pdf",
+    "sendSignature": "false",
+    "account": {
+        "accountNumber": "GDSMAPI",
+        "name": "Affinity Brokerage, LLC",
+        "address1": "64 Inverness Drive East",
+        "address2": "",
+        "city": "Englewood",
+        "stateCode": "CO",
+        "countryCode": "USA",
+        "postalCode": "80112"
+    },
+    "vehicle": {
+        "vehicleCode": "NEWMAR@BAYSTAR3124@7.3@RWD@G@RM@N",
+        "vehicleType": "RH",
+        "model": "AVENGER 26BH",
+        "make": "PRIME TIME MANUFACTURING",
+        "inServiceDate": "2020-10-01",
+        "msrp": 28361.29,
+        "odometer": 0,
+        "VIN": "99999999999999999",
+        "vehicleClass": "TT",
+        "vehicleYear": 2018,
+        "vehiclePurchasePrice": 28361.29,
+        "fuelType": "G",
+        "driveTrain": "FWD",
+        "vehicleNewOrUsed": "N"
+    },
+    "product": {
+        "productDetailType": "",
+        "productClass": "",
+        "agreementStatus": "",
+        "formNumber": "",
+        "deductibleBase": null,
+        "deductibleReduced": 500,
+        "coverage": "",
+        "termMonths": null,
+        "optionalCoverages": [
+            {
+                "coverageType": "TIRE",
+                "coverageAmount": 66.0
+            }
+        ]
+    },
+    "holder": {
+        "customerFirstName": "IN",
+        "customerLastName": "SALESTAX",
+        "customerAddress1": "1002 LISMORE LN APT F",
+        "customerCity": "INDIANAPOLIS",
+        "customerStateCode": "IN",
+        "customerPostalCode": "46227"
+    },
+    "financing": {
+        "financeType": "Cash"
+    }
+}
+
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="628a5db7-e9bb-40bf-b301-2cd90dff9e39">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="3e569a0f-19cf-46b9-ad0e-48e09732829a" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="5fc3fc88-a5a2-4935-8df2-109d31b45bf5">
+						<ee:transform doc:name="Transform Message" doc:id="45867ebd-06d3-4314-8912-81aead306569">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="50b84cdc-d297-4281-9f75-447d367591c5" is='#[MunitTools::equalTo("Required Value is Missing for [deductibleBase]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert deductibleBase"/>
+			<munit-tools:assert-that doc:id="5946bdc0-5e8a-4589-be73-097e7de8dcea" is='#[MunitTools::equalTo("Required Value is Missing for [coverage]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[1]]" doc:name="Assert coverage"/>
+			<munit-tools:assert-that doc:id="189f886f-280a-4ece-bebf-89000569423b" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" is='#[MunitTools::equalTo("Required Value is Missing for [termMonths]")]' doc:name="Assert termMonths"/>
+			<munit-tools:assert-that doc:name="Assert productClass" doc:id="b5d907ba-82c4-4edb-a685-931e26b346c2" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[3]]" is='#[MunitTools::equalTo("Required Value is Missing for [productClass]")]'/>
+			<munit-tools:assert-that doc:name="Assert agreementStatus" doc:id="a77cd6b0-2072-4948-9a80-b1a4c8fc7f55" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[4]]" is='#[MunitTools::equalTo("Required Value is Missing for [agreementStatus]")]'/>
+			<munit-tools:assert-that doc:name="Assert formNumber" doc:id="7882fe51-9872-4b0b-ad49-980f3acb6824" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[5]]" is='#[MunitTools::equalTo("Required Value is Missing for [formNumber]")]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-product-fields-format-validation" doc:id="46fc94ac-5155-4743-8ca5-309a07ba9339">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="77a30bcc-8200-4311-8484-8755c8ba773f">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "GOODSAM",
+    "urlOnly": "Y",
+    "fileType": "pdf",
+    "sendSignature": "false",
+    "account": {
+        "accountNumber": "GDSMAPI",
+        "name": "Affinity Brokerage, LLC",
+        "address1": "64 Inverness Drive East",
+        "address2": "",
+        "city": "Englewood",
+        "stateCode": "CO",
+        "countryCode": "USA",
+        "postalCode": "80112"
+    },
+    "vehicle": {
+        "vehicleCode": "NEWMAR@BAYSTAR3124@7.3@RWD@G@RM@N",
+        "vehicleType": "RH",
+        "model": "AVENGER 26BH",
+        "make": "PRIME TIME MANUFACTURING",
+        "inServiceDate": "2020-10-01",
+        "msrp": 28361.29,
+        "odometer": 0,
+        "VIN": "99999999999999999",
+        "vehicleClass": "TT",
+        "vehicleYear": 2018,
+        "vehiclePurchasePrice": 28361.29,
+        "fuelType": "G",
+        "driveTrain": "FWD",
+        "vehicleNewOrUsed": "N"
+    },
+    "product": {
+        "productDetailType": "WAR",
+        "productClass": "GoodSam RV MotorhomeGoodSam RV MotorhomeGoodSam RV MotorhomeGoodSam RV MotorhomeGoodSam RV MotorhomeGoodSam RV MotorhomeGoodSam RV MotorhomeGoodSam RV Motorhome",
+        "agreementStatus": "Sasdsasa",
+        "formNumber": "GS200006S-0321_TX-GS200032I-0220GS200006S-0321_TX-GS200032I-0220GS200006S-0321_TX-GS200032I-0220GS200006S-0321_TX-GS200032I-0220GS200006S-0321_TX-GS200032I-0220GS200006S-0321_TX-GS200032I-0220GS200006S-0321_TX-GS200032I-0220GS200006S-0321_TX-GS200032I-0220",
+        "deductibleBase": 500233,
+        "deductibleReduced": 500,
+        "coverage": "Diamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond NewDiamond New",
+        "termMonths": 602233,
+        "optionalCoverages": [
+            {
+                "coverageType": "TIRE",
+                "coverageAmount": 66.0
+            }
+        ]
+    },
+    "holder": {
+        "customerFirstName": "IN",
+        "customerLastName": "SALESTAX",
+        "customerAddress1": "1002 LISMORE LN APT F",
+        "customerCity": "INDIANAPOLIS",
+        "customerStateCode": "IN",
+        "customerPostalCode": "46227"
+    },
+    "financing": {
+        "financeType": "Cash"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="471a8fd1-3de7-4575-82b3-beabde557d59">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="03bd684f-9800-447b-8c99-f84ca71077bd" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="a3795080-39dc-4c67-b576-174a15d29b0e">
+						<ee:transform doc:name="Transform Message" doc:id="6fc56d41-97c0-4570-a912-34155bb39623">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="da6406d6-1bd5-4880-a728-43568f658fa3" is='#[MunitTools::equalTo("Invalid Value Received for [deductibleBase].Please enter a positive integer with Precision:4")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert deductibleBase"/>
+			<munit-tools:assert-that doc:id="4ea75b21-56de-44be-a6e4-98324318a894" is='#[MunitTools::equalTo("Invalid Value Received for [coverage]. Allowed Length:255")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[1]]" doc:name="Assert coverage"/>
+			<munit-tools:assert-that doc:id="07ecbe1b-6dca-43f3-86ee-bd1423e84671" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" is='#[MunitTools::equalTo("Invalid Value Received for [termMonths].Please enter a positive integer with Precision:3")]' doc:name="Assert termMonths"/>
+			<munit-tools:assert-that doc:name="Assert productClass" doc:id="b7af734a-e7c3-464a-92ea-2dfef11bbb3d" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[3]]" is='#[MunitTools::equalTo("Invalid Value Received for [productClass]. Allowed Length:60")]'/>
+			<munit-tools:assert-that doc:name="Assert agreementStatus" doc:id="c22cbec3-cd19-4afd-b563-72f193ef9ce6" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[4]]" is='#[MunitTools::equalTo("Invalid Value Received for [agreementStatus]. Allowed Length:6")]'/>
+			<munit-tools:assert-that doc:name="Assert formNumber" doc:id="b8b03e91-0163-4fd1-b913-b50d6acaf47b" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[5]]" is='#[MunitTools::equalTo("Invalid Value Received for [formNumber]. Allowed Length:100")]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-holder-fields-mandatory-validation" doc:id="ec5730d3-2256-4c1c-8f38-396d24e8d01d">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="cf70b270-aa27-405d-96eb-61062d22a2d7">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "GOODSAM",
+    "urlOnly": "Y",
+    "fileType": "pdf",
+    "sendSignature": "false",
+    "account": {
+        "accountNumber": "GDSMAPI",
+        "name": "Affinity Brokerage, LLC",
+        "address1": "64 Inverness Drive East",
+        "address2": "",
+        "city": "Englewood",
+        "stateCode": "CO",
+        "countryCode": "USA",
+        "postalCode": "80112"
+    },
+    "vehicle": {
+        "vehicleCode": "NEWMAR@BAYSTAR3124@7.3@RWD@G@RM@N",
+        "vehicleType": "RH",
+        "model": "AVENGER 26BH",
+        "make": "PRIME TIME MANUFACTURING",
+        "inServiceDate": "2020-10-01",
+        "msrp": 28361.29,
+        "odometer": 0,
+        "VIN": "99999999999999999",
+        "vehicleClass": "TT",
+        "vehicleYear": 2018,
+        "vehiclePurchasePrice": 28361.29,
+        "fuelType": "G",
+        "driveTrain": "FWD",
+        "vehicleNewOrUsed": "N"
+    },
+    "product": {
+        "productDetailType": "WAR",
+        "productClass": "GoodSam RV Motorhome",
+        "agreementStatus": "S",
+        "formNumber": "GS200006S-0321_TX-GS200032I-0220",
+        "deductibleBase": 500,
+        "deductibleReduced": 500,
+        "coverage": "Diamond New",
+        "termMonths": 60,
+        "optionalCoverages": [
+            {
+                "coverageType": "TIRE",
+                "coverageAmount": 66.0
+            }
+        ]
+    },
+    "holder": {
+        "customerFirstName": "",
+        "customerLastName": "",
+        "customerAddress1": "",
+        "customerCity": "",
+        "customerStateCode": "",
+        "customerPostalCode": ""
+    },
+    "financing": {
+        "financeType": "Cash"
+    }
+}
+
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="970dc34f-8d13-4d52-8baf-05a130639c67">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="4d8d9b3f-8091-4f8c-a7c6-a31708cc28c8" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="bf5f0be9-cf97-4f3b-8059-d6a1871d757c">
+						<ee:transform doc:name="Transform Message" doc:id="53b374fc-427b-4f91-8daf-063c1652a805">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="f7fc0d3d-a9b1-47a2-afc5-4a5dc75a4cb3" is='#[MunitTools::equalTo("Required Value is Missing for [customerFirstName]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert customerFirstName"/>
+			<munit-tools:assert-that doc:id="8dc3514b-947c-4381-ba36-a6366669710f" is='#[MunitTools::equalTo("Required Value is Missing for [customerLastName]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[1]]" doc:name="Assert customerLastName"/>
+			<munit-tools:assert-that doc:id="978661d6-92e4-4706-9cbb-d3c3fa582a93" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" is='#[MunitTools::equalTo("Required Value is Missing for [customerAddress1]")]' doc:name="Assert customerAddress1"/>
+			<munit-tools:assert-that doc:name="Assert customerCity" doc:id="9bccb328-88d9-400d-97bc-5b9869876739" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[3]]" is='#[MunitTools::equalTo("Required Value is Missing for [customerCity]")]'/>
+			<munit-tools:assert-that doc:name="Assert customerStateCode" doc:id="580fa90a-fa8f-486e-bf9f-4aa8845a9f64" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[4]]" is='#[MunitTools::equalTo("Required Value is Missing for [customerStateCode]")]'/>
+			<munit-tools:assert-that doc:name="Assert customerPostalCode" doc:id="ef339522-afda-4aa1-85c3-9385813e6e19" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[5]]" is='#[MunitTools::equalTo("Required Value is Missing for [customerPostalCode]")]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-holder-fields-format-validation" doc:id="bbdaa6c1-fe82-4a64-9583-7e50875e93f5">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="828f0403-ac5d-481f-8f6e-a48d87621ba6">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "GOODSAM",
+    "urlOnly": "Y",
+    "fileType": "pdf",
+    "sendSignature": "false",
+    "account": {
+        "accountNumber": "GDSMAPI",
+        "name": "Affinity Brokerage, LLC",
+        "address1": "64 Inverness Drive East",
+        "address2": "",
+        "city": "Englewood",
+        "stateCode": "CO",
+        "countryCode": "USA",
+        "postalCode": "80112"
+    },
+    "vehicle": {
+        "vehicleCode": "NEWMAR@BAYSTAR3124@7.3@RWD@G@RM@N",
+        "vehicleType": "RH",
+        "model": "AVENGER 26BH",
+        "make": "PRIME TIME MANUFACTURING",
+        "inServiceDate": "2020-10-01",
+        "msrp": 28361.29,
+        "odometer": 0,
+        "VIN": "99999999999999999",
+        "vehicleClass": "TT",
+        "vehicleYear": 2018,
+        "vehiclePurchasePrice": 28361.29,
+        "fuelType": "G",
+        "driveTrain": "FWD",
+        "vehicleNewOrUsed": "N"
+    },
+    "product": {
+        "productDetailType": "WAR",
+        "productClass": "GoodSam RV Motorhome",
+        "agreementStatus": "S",
+        "formNumber": "GS200006S-0321_TX-GS200032I-0220",
+        "deductibleBase": 500,
+        "deductibleReduced": 500,
+        "coverage": "Diamond New",
+        "termMonths": 60,
+        "optionalCoverages": [
+            {
+                "coverageType": "TIRE",
+                "coverageAmount": 66.0
+            }
+        ]
+    },
+    "holder": {
+        "customerFirstName": "INDFGYHUIJHUYTRTDRFGHJGFCVHBHJKGFDGHJKGVBCBJNVGHJKJL:LHKJGHFCGHJKKHGHCJKVNHBJNKGXDFTYGUIHGJHHJKGCHUHKGFHGDTYUITUTRTDYUIYG",
+        "customerLastName": "SALESTAXXGFCHJKLHGFDFFTGHKGJFCHVJKHKBCVBJNBMVCGHFDGHJKHGFHJKHGJKJIJIUYFYGUIOUGFHJGHILJHKHJGCGVHKJJHGCFYUGIYTTUIYTDYF",
+        "customerAddress1": "1002 LISMORE LN APT F1002 LISMORE LN APT F1002 LISMORE LN APT F1002 LISMORE LN APT F1002 LISMORE LN APT F1002 LISMORE LN APT F1002 LISMORE LN APT F1002 LISMORE LN APT F1002 LISMORE LN APT F1002 LISMORE LN APT F1002 LISMORE LN APT F",
+        "customerCity": "INDIANAPOLISINDIANAPOLISINDIANAPOLISINDIANAPOLISINDIANAPOLISINDIANAPOLISINDIANAPOLISINDIANAPOLISINDIANAPOLIS",
+        "customerStateCode": "ININININININININIININNININI",
+        "customerPostalCode": "4622712321232123"
+    },
+    "financing": {
+        "financeType": "Cash"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="c96b7a9d-67f9-4bf1-97f6-7df0c3d8e891">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="590aa331-7313-466c-929b-f808667f9b79" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="02096125-5361-4ee2-879a-98816ee6daeb">
+						<ee:transform doc:name="Transform Message" doc:id="c9aa802c-0158-4926-bca6-3a3e4d3e9a21">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="66dbc45e-7f3f-4f81-b8a4-4b6da7c00362" is='#[MunitTools::equalTo("Invalid Value Received for [customerFirstName]. Allowed Length:100")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert customerFirstName"/>
+			<munit-tools:assert-that doc:id="044224a3-aaaf-40ad-b50a-fc22eb5d0b49" is='#[MunitTools::equalTo("Invalid Value Received for [customerLastName]. Allowed Length:100")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[1]]" doc:name="Assert customerLastName"/>
+			<munit-tools:assert-that doc:id="2042b8c6-9fda-4b40-ae2d-1556e110de90" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" is='#[MunitTools::equalTo("Invalid Value Received for [customerAddress1]. Allowed Length:100")]' doc:name="Assert customerAddress1"/>
+			<munit-tools:assert-that doc:name="Assert customerCity" doc:id="04fb24ab-3e13-4ee8-a6b0-a7c3806bfc4a" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[3]]" is='#[MunitTools::equalTo("Invalid Value Received for [customerCity]. Allowed Length:100")]'/>
+			<munit-tools:assert-that doc:name="Assert customerStateCode" doc:id="e443a311-da93-46d9-8015-fa0b784c36e5" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[4]]" is='#[MunitTools::equalTo("Invalid Value Received for [customerStateCode]. Allowed Length:25")]'/>
+			<munit-tools:assert-that doc:name="Assert customerPostalCode" doc:id="cbd1356e-78d5-4270-8fe1-665fe7634b9e" expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[5]]" is='#[MunitTools::equalTo("Invalid Value Received for [customerPostalCode].Please enter a positive integer with Precision:[5-10]")]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-holder-finance-mandatory-validation" doc:id="e07ad03f-d9af-4ece-85d8-3e48a3f8345c">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="49085060-f77c-487e-8f4f-66795ec3c89b">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "AVC",
+    "urlOnly": "Y",
+    "contractNumber": "SP3S53",
+    "account": {
+        "stateCode": "IL",
+        "postalCode": "60604",
+        "name": "AVC TEST",
+        "countryCode": "USA",
+        "city": "CHICAGO",
+        "address1": "175 W JACKSON BLVD",
+        "accountNumber": "AVCTEST"
+    },
+    "vehicle": {
+        "VIN": "JTDKN3DP1E3063178",
+        "vehicleYear": 2021,
+        "vehicleType": "RM",
+        "vehicleClass": "1",
+        "odometer": 500,
+        "model": "Travel Trailer",
+        "make": "Recreational",
+        "inServiceDate": "2021-01-12"
+    },
+    "product": {
+        "productClass": "AVC GAP No Limit of Liability",
+        "productDetailType":"GAP",
+        "agreementStatus": "S",
+        "formNumber": "RVFER1216",
+        "deductibleBase": 0,
+        "coverage": "Comprehensive",
+        "termMonths": 72
+    },
+    "holder": {
+        "customerFirstName": "DANIEL",
+        "customerLastName": "ENZLER",
+        "customerAddress1": "PO BOX 3205",
+        "customerCity": "DIAMOND SPRINGS",
+        "customerStateCode": "CA",
+        "customerPostalCode": "95619 3205",
+        "customerHomePhoneNumber": "5103038464",
+        "customerWorkPhoneNumber": "5103038464",
+        "customerMobilePhoneNumber": "3124567886"
+    },
+    "financing": {
+        "financeType": "",
+        "lienholderName": "",
+        "lienholderAddress1": "123",
+        "lienholderCity": "DIAMOND SPRINGS",
+        "lienholderState": "CA",
+        "lienholderPostalCode": "95619-3102"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="0312fe26-f494-4ce6-b594-7af6cd52c6cf">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="82fd06e2-5d33-4808-a1bc-3ac73e255759" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="b4484d2f-effe-4775-9222-ddb0421dafa4">
+						<ee:transform doc:name="Transform Message" doc:id="07c18417-9f3c-4b71-a24a-cf961683d93f">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="100a5f23-032d-4660-9e4f-4ab6bbfe6430" is='#[MunitTools::equalTo("Required Value is Missing for [financeType]")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert financeType"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-forms-test-suite-finance-fields-format-validation" doc:id="b1477b65-feb4-4ccf-b839-594e461cfb08">
+		<munit:execution>
+			<ee:transform doc:name="Transform Message" doc:id="8337c1d1-919f-406e-9080-7aa5ab0931dd">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "sourceOriginator": "AVC",
+    "urlOnly": "Y",
+    "contractNumber": "SP3S53",
+    "account": {
+        "stateCode": "IL",
+        "postalCode": "60604",
+        "name": "AVC TEST",
+        "countryCode": "USA",
+        "city": "CHICAGO",
+        "address1": "175 W JACKSON BLVD",
+        "accountNumber": "AVCTEST"
+    },
+    "vehicle": {
+        "VIN": "JTDKN3DP1E3063178",
+        "vehicleYear": 2021,
+        "vehicleType": "RM",
+        "vehicleClass": "1",
+        "odometer": 500,
+        "model": "Travel Trailer",
+        "make": "Recreational",
+        "inServiceDate": "2021-01-12"
+    },
+    "product": {
+        "productClass": "AVC GAP No Limit of Liability",
+        "productDetailType":"GAP",
+        "agreementStatus": "S",
+        "formNumber": "RVFER1216",
+        "deductibleBase": 0,
+        "coverage": "Comprehensive",
+        "termMonths": 72
+    },
+    "holder": {
+        "customerFirstName": "DANIEL",
+        "customerLastName": "ENZLER",
+        "customerAddress1": "PO BOX 3205",
+        "customerCity": "DIAMOND SPRINGS",
+        "customerStateCode": "CA",
+        "customerPostalCode": "95619 3205",
+        "customerHomePhoneNumber": "5103038464",
+        "customerWorkPhoneNumber": "5103038464",
+        "customerMobilePhoneNumber": "3124567886"
+    },
+    "financing": {
+        "financeType": "1233",
+        "lienholderName": "",
+        "lienholderAddress1": "123",
+        "lienholderCity": "DIAMOND SPRINGS",
+        "lienholderState": "CA",
+        "lienholderPostalCode": "95619-3102",
+        "installmentDownPayment" : 12345678987653.35446,
+        "installmentAmount" : 4456668987653.35446,
+        "installmentPaymentTerm":46755667,
+        "installmentPaymentFrequency":"ASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDDASDDDD"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="d141b8a9-deb5-40bf-bcfd-fc7482069ad4">
+				<flow-ref doc:name="Call process-service-forms-validation-flow" doc:id="2dd1a664-007f-4869-bd08-b5c9187e28f8" name="process-service-forms-validation-flow"/>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="7781db05-c9d2-4c14-87a9-ba99eec1e05f">
+						<ee:transform doc:name="Transform Message" doc:id="70b134f2-9423-4930-a651-636b7f506ff2">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="ae5be608-ec9d-487e-9b48-6d835b68c500" is='#[MunitTools::equalTo("Invalid Value Received for [financeType]. Allowed Length:9 Allowed Values:(Finance, Cash, Lease, Loan, OtherLoan, Balloon)")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[0]]" doc:name="Assert financeType"/>
+			<munit-tools:assert-that doc:name="Assert Installment Down Payment" doc:id="9c026d33-72ad-445d-9e6d-363397200ff4" is='#[MunitTools::equalTo("Invalid Value Received for [installmentDownPayment].Please enter a positive value with Precision:(9,2)")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[2]]" />
+		    <munit-tools:assert-that doc:name="Assert Installment Amount" doc:id="cf4a1e96-f8d1-49a8-91f2-81e018d46c9d" is='#[MunitTools::equalTo("Invalid Value Received for [installmentAmount].Please enter a positive value with Precision:(9,2)")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[3]]" />
+		    <munit-tools:assert-that doc:name="Assert Installment payment Term" doc:id="ad906d21-ad6e-4bb8-ae85-a0491c4006df" is='#[MunitTools::equalTo("Invalid Value Received for [installmentPaymentTerm].Please enter a positive integer with Precision:3")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[4]]" />
+            <munit-tools:assert-that doc:name="Assert Installment payment frequency" doc:id="308e6a36-d62e-4ae7-a4ec-e614a134668d" is='#[MunitTools::equalTo("Invalid Value Received for [installmentPaymentFrequency]. Allowed Length:50")]' expression="#[%dw 2.0&#10;output application/json&#10;---&#10;payload.userMessage[5]]" />
+		</munit:validation>
+	</munit:test>
+</mule>

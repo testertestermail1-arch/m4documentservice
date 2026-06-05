@@ -1,0 +1,803 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault"
+	xmlns:cloudhub="http://www.mulesoft.org/schema/mule/cloudhub"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:spring="http://www.mulesoft.org/schema/mule/spring"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:apikit-soap="http://www.mulesoft.org/schema/mule/apikit-soap" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd 
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/spring http://www.mulesoft.org/schema/mule/spring/current/mule-spring.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/apikit-soap http://www.mulesoft.org/schema/mule/apikit-soap/current/mule-apikit-soap.xsd
+http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd">
+
+<ee:object-store-caching-strategy name="Template_URL_Caching_Strategy" doc:name="Caching Strategy" doc:id="44fbdc00-ed7f-4e59-a31a-aa7a72dc4511" objectStore="Template_URL_ObjectStore"/>
+	<os:object-store name="Template_URL_ObjectStore" doc:name="Object store" doc:id="fea3ae43-6b1f-4be8-af69-f2c49d80fed5" maxEntries="-1" entryTtl="${api.template.url.objectstore.ttl}" entryTtlUnit="MINUTES" expirationInterval="${api.template.url.objectstore.expirationtime}" config-ref="ObjectStore_Config"/>
+	<http:listener-config name="httpListenerConfig" doc:name="HTTP Listener config" doc:id="1779c788-7794-4b81-b1f6-f01760a08f6f" doc:description="Common http configuration">
+		<http:listener-connection host="${http.private.host}" port="${http.private.port}"> 
+		</http:listener-connection> 
+	</http:listener-config>
+	<http:listener-config name="httpsListenerConfig" doc:name="HTTP Listener config" doc:id="1e600302-5d14-44c3-ab36-b48bac957ed8" doc:description="Common https configuration">
+		<http:listener-connection host="0.0.0.0" port="${https.private.port}" protocol="HTTPS">
+			<tls:context >
+				<tls:key-store type="jks" path="keystores/twg/twgkeystore-${mule.env}.jks" alias="twgkey-${mule.env}" keyPassword="${ssl.keystore.password}" password="${ssl.keystore.password}" />
+			</tls:context>
+		</http:listener-connection>
+	</http:listener-config>
+	<salesforce:sfdc-config name="salesforceConfig" doc:name="Salesforce Config" doc:id="7f7d789c-6dbc-4b5e-b03f-3871a9b6c558" doc:description="Common Salesforce configuration" readTimeout="30000">
+		<salesforce:basic-connection username="${sfdc.userid}" password="${sfdc.password}" url="${sfdc.url}" connectionTimeout="30000" >
+			<reconnection >
+				<reconnect-forever />
+			</reconnection>
+		</salesforce:basic-connection>
+	</salesforce:sfdc-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="97f8150f-582d-4013-ac2f-2ecde22bdf8c" file="mule-app.properties" />
+		<azure-key-vault:config name="Azure_Key_Vault_Config" doc:name="Azure Key Vault Config" doc:id="88ab8799-9946-4970-a0b5-ded548109c69" >
+		<azure-key-vault:connection clientId="${azure.keyvault.clientid}" tenantId="${azure.keyvault.tenantId}" clientSecret="${azure.keyvault.clientsecret}" vaultName="${azure.keyvault.name}" />
+	</azure-key-vault:config>
+	 <apikit:config name="experience-forms-api-config" api="experience-forms-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" >
+		<apikit:flow-mappings >
+			<apikit:flow-mapping resource="/service/forms" action="post" content-type="application/json" flow-ref="post:\service\forms:experience-forms-api-config" />
+			<apikit:flow-mapping resource="/contracts/document" action="get" flow-ref="get:\contracts\document:experience-forms-api-config" />
+		</apikit:flow-mappings>
+	</apikit:config>
+	<apikit:config outboundHeadersMapName="outboundHeadersMapName" httpStatusVarName="httpStatus" doc:name="Router" doc:id="1c461a09-1e34-4bb3-b3b0-3f907efb94a5" name="forms-internal-services-api-config" api="forms-internal-services-api.raml" >
+		<apikit:flow-mappings >
+			<apikit:flow-mapping resource="/forms" action="post" content-type="application/json" flow-ref="post:\forms:forms-internal-services-api-config" />
+			<apikit:flow-mapping resource="/forms" action="post" content-type="application/xml" flow-ref="post:\forms:forms-internal-services-api-config" />
+			<apikit:flow-mapping resource="/qcert-forms" action="post" content-type="application/json" flow-ref="post:\qcert-forms:application\json:forms-internal-api-config" />
+			<apikit:flow-mapping resource="/service/forms" action="post" content-type="application/json" flow-ref="post:\service\forms:forms-internal-api-config" />
+			<apikit:flow-mapping resource="/springcm/healthcheck" action="get" flow-ref="get:\springcm\healthcheck:forms-internal-api-config" />
+    </apikit:flow-mappings>
+	</apikit:config>
+	<apikit:config name="forms-services-liveness-check-config" api="forms-services-liveness-check.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" >
+		<apikit:flow-mappings >
+			<apikit:flow-mapping resource="/alive" action="get" flow-ref="get:\alive:forms-services-liveness-check-config" />
+			<apikit:flow-mapping resource="/components/health" action="get" flow-ref="get:\components\health:forms-services-liveness-check-config" />
+		</apikit:flow-mappings>
+	</apikit:config>
+	<apikit:config name="forms-services-healthCheck-api-config" api="forms-services-healthCheck-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus">
+		<apikit:flow-mappings >
+			<apikit:flow-mapping resource="/health" action="get" flow-ref="get:\health:forms-services-healthCheck-api-config" />
+		</apikit:flow-mappings>
+	</apikit:config> 
+	<spring:config name="Spring_Config" doc:name="Spring Config" doc:id="125f59e2-3812-45bd-9ba0-6b9ce5f09127" files="beans.xml" />
+	<os:object-store name="springCM_Auth_ObjectStore" doc:name="Object store" doc:id="02190b14-e130-4deb-8a21-802601b14572" maxEntries="1" entryTtl="${api.system.objectstore.ttl}" expirationInterval="${api.system.objectstore.expirationtime}" config-ref="ObjectStore_Config" expirationIntervalUnit="SECONDS"/>
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="c84a8335-5657-48ae-af53-ae4c4755b1f1" />
+	<http:request-config name="HTTP_Request_SpringCM_Authentication" doc:name="HTTP Request configuration" doc:id="ad4724e5-6406-417d-b812-e9268d2c9c94" responseTimeout="${springcm.api.response.timeout}" >
+		<http:request-connection protocol="HTTPS" host="${springcm.authentication.api.implementation.host}" port="${springcm.api.implementation.port}" connectionIdleTimeout="${springcm.api.connection.timeout}" />
+	</http:request-config>
+	<http:request-config name="SpringCM_Request_configuration" doc:name="HTTP Request configuration" doc:id="f0b94d01-8eed-4b35-9ff9-a601556bda12" responseTimeout="${springcm.api.response.timeout}" >
+		<http:request-connection protocol="HTTPS" host="${document.api.implementation.host}" port="${springcm.api.implementation.port}" connectionIdleTimeout="${springcm.api.connection.timeout}" />
+	</http:request-config>
+	<http:request-config name="SpringCM_Upload_Request_configuration" doc:name="HTTP Request configuration" doc:id="f9b928e0-d808-4b44-955e-a0d175eb1b6b" responseTimeout="${springcm.api.response.timeout}">
+		<http:request-connection protocol="HTTPS" host="${document.upload.api.implementation.host}" port="${springcm.api.implementation.port}" connectionIdleTimeout="${springcm.api.connection.timeout}" />
+	</http:request-config>
+		<http:request-config name="SpringCM_download_Request_configuration" doc:name="HTTP Request configuration" responseTimeout="${springcm.api.response.timeout}">
+		<http:request-connection protocol="HTTPS" host="${document.download.api.implementation.host}" port="${springcm.api.implementation.port}" connectionIdleTimeout="${springcm.api.connection.timeout}" />
+	</http:request-config>
+	<http:request-config name="Vehicle_Request_Configuration" doc:name="HTTP Request configuration" doc:id="25262956-b19c-4159-be18-cb0a9893ab8a" responseTimeout="${api.vehicle.http.internal.response.timeout}">
+		<http:request-connection host="${api.vehicle.http.internal.listener.host}" port="${api.vehicle.http.internal.listener.port}" connectionIdleTimeout="${api.vehicle.http.internal.connection.idletimeout}"/>
+	</http:request-config>
+	<db:config name="Logger_Database_Config" doc:name="Database Config" doc:id="20eb2f72-e3bf-40bb-b676-c31ad2ff6d56" >
+		<db:data-source-connection dataSourceRef="DataSource-loggerDB" />
+	</db:config>
+	<http:request-config name="QR_Code_Request_configuration" doc:name="HTTP Request configuration" doc:id="19cb0b45-1679-47e9-a151-ebf29f6deec0" basePath="${qr.code.implementation.basepath}">
+		<http:request-connection protocol="HTTPS" host="${qr.code.implementation.host}" port="${qr.code.implementation.port}" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration_for_ExpirationType" doc:name="HTTP Request configuration" doc:id="3323a0cf-4c6d-4c0d-a883-6b4702cc96f0" responseTimeout="${api.expirationType.http.internal.response.timeout}">
+        <http:request-connection host="${api.expirationType.http.internal.listener.host}" port="${api.expirationType.http.internal.listener.port}" connectionIdleTimeout="${api.expirationType.http.internal.connection.idletimeout}"/>
+    </http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="644f18e8-314c-4b0a-87e3-b280a5b9d1bc" doc:description="Glow Queries Property Configuration" file="glow-queries.properties" />
+	<validation:config name="Validation_Config" doc:name="Validation Config" doc:id="8a03e784-2943-48ea-bf8b-38f9136f11f7" />
+	<api-gateway:autodiscovery apiId="${api.document.service.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="e7d826da-dd1b-42e2-9a6f-ab68c02ab15c" flowRef="experience-forms-api-main" />
+	<api-gateway:autodiscovery apiId="${api.document.internal.services.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="625e6fe7-f876-4cea-8acc-b12ddc06319b" flowRef="forms-internal-services-api-main" />
+	<apikit-soap:config name="forms_api.soapkit-config" service="FormsWebServiceImplService" port="FormsWebServiceImplPort" doc:name="APIKit for SOAP Configuration" doc:id="a4ec4bfe-90de-4faa-8803-2d3c583de85e" address="${wsdl.address.location.host}" wsdlLocation="api\wsdl\uat.forms.thewarrantygroup.com.wsdl" />
+	<api-gateway:autodiscovery apiId="${api.document.liveness.id}" ignoreBasePath="true" doc:name="API Autodiscovery For Document Services Liveness" doc:id="840cba14-16cf-4f92-85fa-4d10b567aa59" flowRef="forms-services-liveness-check-main" />
+	<api-gateway:autodiscovery apiId="${api.document.healthCheck.id}" ignoreBasePath="true" doc:name="API Autodiscovery For Document Services Health Check" doc:id="044eff87-972d-4ae8-82d9-b6ac6e3d7cfd" flowRef="forms-services-healthCheck-api-main" />
+
+<!-- EPG Claims Attachments API  -->
+    <apikit:config name="epg-claims-attachments-api-config" api="epg-claims-attachments-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" doc:description="EPG attachments API router config">
+		<apikit:flow-mappings >
+			<apikit:flow-mapping resource="/auto/epg/claims/{claimNumber}/documents" action="post" content-type="multipart/form-data" flow-ref="post:\auto\epg\claims\(claimNumber)\documents:multipart\form-data:epg-claims-attachments-api-config" />
+		</apikit:flow-mappings>
+	</apikit:config>
+	<sftp:config name="epg-claims-attachments-sftp-config" doc:name="SFTP Config" doc:id="fc95fba4-b994-46c3-9477-51bd04994138" doc:description="EPG attachments SFTP connection configuration">
+		<sftp:connection workingDir="${sftp.epg.auth.workingDir}" host="${sftp.epg.auth.host}" port="${sftp.epg.auth.port}" username="${sftp.epg.auth.username}" password="${sftp.epg.auth.password}">
+			<reconnection >
+				<reconnect-forever/>
+			</reconnection>
+		</sftp:connection>
+	</sftp:config>	
+	<api-gateway:autodiscovery apiId="${epg.claims.attachments.api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="65670817-b399-49a4-a7da-2275875bf9d6" flowRef="epg-claims-attachments-api-main" doc:description="EPG attachments API Autodiscovery"/>
+<!--                             -->
+
+	<apikit:config outboundHeadersMapName="outboundHeadersMapName" httpStatusVarName="httpStatus" doc:name="Router" doc:id="8f605bec-2060-4b9f-b2c2-110713460e2d" name="experience-forms-internal-api-config" api="forms-internal-api.raml" >
+		<apikit:flow-mappings >
+			<apikit:flow-mapping resource="/forms" action="post" content-type="application/json" flow-ref="post:\forms:experience-forms-internal-api-config" />
+			<apikit:flow-mapping resource="/forms" action="post" content-type="application/xml" flow-ref="post:\forms:experience-forms-internal-api-config" />
+			<apikit:flow-mapping resource="/uploadforms" action="post" content-type="multipart/form-data" flow-ref="post:\uploadforms:multipart\form-data:forms-internal-api-config" />
+			<apikit:flow-mapping resource="/invalidateCache" action="get" flow-ref="get:\invalidateCache:forms-internal-api-config" />
+		</apikit:flow-mappings>
+	</apikit:config>
+	<apikit:config outboundHeadersMapName="outboundHeadersMapName" httpStatusVarName="httpStatus" doc:name="Router" doc:id="fbc0cf94-4f55-4168-9bb0-01c6fc7806a5" name="experience-forms-template-api" api="experience-forms-template-api.raml" >
+		<apikit:flow-mappings >
+			<apikit:flow-mapping resource="/forms/{template-id}" action="get" flow-ref="get:\forms\template-id:experience-forms-template-api-config" />
+		</apikit:flow-mappings>
+	</apikit:config>
+	<api-gateway:autodiscovery apiId="${api.form.template.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="e846072c-b927-402f-8198-62524f8386ea" flowRef="experience-forms-template-api-mainFlow" />			
+	<cloudhub:config name="CloudHub_Config" doc:name="CloudHub Config" doc:id="753c815c-e0d9-4bad-bd7e-63a218ed57b6" >
+		<cloudhub:oauth-client-credentials-connection environment="${cloudhub.alert.environment}" clientId="${cloudhub.alert.client_id}" clientSecret="${cloudhub.alert.client_secret}"/>
+	</cloudhub:config>
+    <ee:object-store-caching-strategy name="Caching_Strategy_for_user_validation" doc:name="Caching Strategy" doc:id="07a5becc-0f40-4176-8d2b-0f627ee02c6f" keyGenerationExpression="#[if((!isEmpty(payload.userNameSplit)) or (!isEmpty(payload.tokenSplit)))((if(!isEmpty(payload.userNameSplit)) payload.userNameSplit else '') ++ (if(!isEmpty(payload.tokenSplit)) payload.tokenSplit else '')) else vars.emptyCache]">
+		<os:private-object-store maxEntries="${cache.user.validation.size}" entryTtl="${cache.user.validation.ttl}" expirationInterval="${cache.user.validation.expire}" expirationIntervalUnit="MILLISECONDS" entryTtlUnit="MILLISECONDS"/>
+	</ee:object-store-caching-strategy>
+	<error-handler name="global-error-handler" doc:id="ea5f1aae-52d1-468f-a7ff-7a3b6b806602" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e4dde5fd-1baf-4d0b-98a5-189e62062744" when="#[error.errorType.namespace == 'VALIDATION']">
+			<logger level="DEBUG" doc:name="Logger" doc:id="e74abc15-30e7-4203-bf62-7310560c0e20" message="in global validation error logger" category="global.error.handler"/>
+			<ee:transform doc:name="Transform Message" doc:id="1b87cdf2-e11c-49d1-a331-89ef05219be1" >
+	<ee:message >
+					<ee:set-payload resource="dwl/modules/common_used/common_used_validation_error_payload.dwl" />
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpstatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="19b29adb-e572-4457-8a3e-bea8d14792f2" type="ANY">
+			<logger level="DEBUG" doc:name="Logger" doc:id="46d58994-aad5-4458-84e0-01065d7d4f9c" message="in any error logger" category="global.error.handler"/>
+			<ee:transform doc:name="Transform Message" doc:id="ffc95294-d437-476e-95b7-899a045d3e98" >
+				<ee:message >
+					<ee:set-payload resource="dwl/modules/common_used/common_used_any_error_type_payload.dwl" />
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		
+		            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <logger level="DEBUG" doc:name="Logger" doc:id="86f799be-58c6-4dab-8eb7-9a441ed511c0" message="in APIKIT BAD REQUEST error logger" category="global.error.handler" />
+			<ee:transform>
+                    <ee:message>
+					<ee:set-payload resource="dwl/modules/common_used/common_used_400_bad_request_error_payload.dwl" />
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <logger level="DEBUG" doc:name="Logger" doc:id="b93a8b38-df1c-4815-91f5-519ac14ae5d4" message="in APIKIT RESOURCE NOT FOUND error logger" category="global.error.handler" />
+			<ee:transform>
+                    <ee:message>
+					<ee:set-payload resource="dwl/modules/common_used/common_used_404_request_not_found_error_payload.dwl" />
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <logger level="DEBUG" doc:name="Logger" doc:id="d39b567a-0c7a-4cd3-8373-6ead20e6aa48" message="in APIKIT METHOD NOT ALLOWED error logger" category="global.error.handler" />
+			<ee:transform>
+                    <ee:message>
+					<ee:set-payload resource="dwl/modules/common_used/common_used_405_method_not_allowed_error_payload.dwl" />
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <logger level="DEBUG" doc:name="Logger" doc:id="0f242547-56ea-42d4-9de9-9e9c3411dae3" message="in APIKIT NOT ACCEPTABLE error logger" category="global.error.handler" />
+			<ee:transform>
+                    <ee:message>
+					<ee:set-payload resource="dwl/modules/common_used/common_used_406_not_acceptable_error_payload.dwl" />
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <logger level="DEBUG" doc:name="Logger" doc:id="91ab6f73-d60b-43f8-923d-cb1b8ed793c3" message="in APIKIT UNSUPPORTED MEDIA TYPE error logger" category="global.error.handler" />
+			<ee:transform>
+                    <ee:message>
+					<ee:set-payload resource="dwl/modules/common_used/common_used_415_unsupported_media_type_error_payload.dwl" />
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <logger level="DEBUG" doc:name="Logger" doc:id="36176c0d-643f-44bd-8ab4-e7ce65020729" message="in APIKIT NOT IMPLEMENTED error logger" category="global.error.handler" />
+			<ee:transform>
+                    <ee:message>
+					<ee:set-payload resource="dwl/modules/common_used/common_used_501_not_implemented_error_payload.dwl" />
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[501]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>	
+	</error-handler>
+	<error-handler name="abstract-generate-forms-global-error-handler" doc:id="7f784ca2-0ebf-4a5e-82c1-018f661d7fc7" >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="Data Validation Error" doc:id="c9469e92-fc9f-4904-9056-7ce8a9133e85" type="CUS_DATA_VALIDATION:ERROR">
+			<logger level="INFO" doc:name="Data Validation Error Logger" doc:id="cd3c1a23-7c41-405b-af8b-3bf48dc08994" message='Message Id : #[correlationId] || Abstract Forms Data Validation Error Handler || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' />
+			<ee:transform doc:name="Frame Data Validation Error Response" doc:id="3e057822-96d2-4ef3-9b76-ad33b856a7c6">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/xml writeDeclaration = true
+ns ns2 http://webservice.forms.twg.com/
+---
+ns2#getFormResponse: {
+	return: {
+		status: {
+			error: 'true',
+			errors: {
+				key: if((!isEmpty(error.description)) and (error.description contains "|")) (error.description splitBy '|')[0] else p('exception.forms.number.key'),
+				message: if((!isEmpty(error.description)) and (error.description contains "|")) (error.description splitBy '|')[1]  else p('exception.forms.number.message')
+			}
+		}
+	}
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="User Validation Error" doc:id="0ed4b3d9-108f-4e0f-8d1c-a8914fda4f59" type="CUS_USER_VALIDATION:ERROR">
+			<logger level="INFO" doc:name="User Validation Logger" doc:id="809574ea-54de-4f82-914b-754f2dcc339c" message='Message Id : #[correlationId] || User Validation Failed: Unauthorized User ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' />
+			<ee:transform doc:name="Frame Unauthorized User Error Response" doc:id="171236a2-f120-4cb1-9ede-af76cd09d717" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml writeDeclaration = true
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/
+---
+soap#Fault: {
+	ns2#getFormResponse: {
+		return: {
+			status: {
+				error: "true",
+				errors: {
+					key: "request.callingApp.securityService.invalid",
+					message: "The security service credentials are not valid."
+				}
+			}
+		}
+	}
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="Forms Error" doc:id="3e5392d0-15ef-4b3a-bd3e-ced0b27b73f6" type="ANY">
+			<logger level="INFO" doc:name="Forms Error Logger" doc:id="39f96e6e-7e89-4397-b420-cd1f12d697ec" message='Message Id : #[correlationId] || Abstract Forms Error Handler ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+			<ee:transform doc:name="Frame Forms Error Response" doc:id="8fe94490-3abc-4e83-90b6-c8a8babf3cce" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml writeDeclaration=false
+ns ns2 http://webservice.forms.twg.com/ 
+---
+if (not isEmpty(payload.Envelope.Body)) payload.Envelope.Body
+else (
+	 ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                        errors:{ 
+             													 key : p('exception.general.key'),
+       													     	 message: p('exception.general.message') 
+                     											}
+												}
+										}
+
+}
+)
+
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+if (!isEmpty(vars.httpStatus)) (vars.httpStatus) else "500"]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+	
+</error-handler>
+    <error-handler name="global-config-for-experience-service-forms-api" doc:id="9dcfca6b-c4ff-4fc0-9e5f-84d11b7a2ed1" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Connection Exception" doc:id="2eefcd9d-a188-4b37-a974-4b7f73c3d5cc" type='HTTP:CONNECTIVITY'>
+			<logger level="DEBUG" doc:name="Any error handler logger" doc:id="6d95bbb8-e51f-4b01-b5c0-54217ac65d54" message="Message Id : #[correlationId] || Connection error handler" category="global.error.handler" />
+			<set-variable value="500" doc:name="Set Status Code" doc:id="5ddddadd-24bc-4daa-8333-6a1f183a4c50" variableName="httpStatus" />
+			<ee:transform doc:name="Final JSON Response" doc:id="5f11820c-6878-4bb0-8fc8-d840b975fb45" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": "Failure",
+    "correlationId": correlationId,
+    "errorCode": "GB",
+    "errorCategroy": "Connection error",
+    "userMessage": 
+       p('exception.connection.message'),
+    "DeveloperMessage": error.description
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Validation Execption" doc:id="cd3e72d4-e322-4f47-9e85-bf0e8f0c775b" type="CUS_VALIDATION:BAD REQUEST">
+			<logger level="INFO" doc:name="validation logger" doc:id="7cbe23d7-3f30-4d69-bdd4-62012b988d25" message="Message Id : #[correlationId] - Error Occured in java component" />
+			<set-variable value="400" doc:name="Set Status Code" doc:id="c589e9e3-4bc6-4f35-81f1-40d4429400e0" variableName="httpStatus" />
+			<ee:transform doc:name="Final JSON Response" doc:id="cf975a1f-7c02-41d4-b128-70158c4023d5" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.javaErrorMessage]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Java Error" doc:id="7269efc6-9c8a-4b9e-9c3e-78a3b21eeab9" type="CUS_JAVA:ERROR" when="#[!isEmpty(payload.errors.key)]">
+			<logger level="INFO" doc:name="Java error logger" doc:id="a48ac716-762f-4f75-86d6-4955eaa5cdf0" message="Message Id : #[correlationId] - Error Occured in java component" />
+			<set-variable value="400" doc:name="Set Status Code" doc:id="3e75e71a-7224-4d1a-83fe-74e3398dea56" variableName="httpStatus" />
+			<ee:transform doc:name="Final JSON Response" doc:id="228751aa-6e80-452e-9303-b9d7b9fffcf7">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+"status": "Failure",
+"correlationId": correlationId,
+"errorCode": "FV0001",
+"errorCategroy": "Format Validation Error",
+"userMessage": (payload.errors map {
+    msg :  $.message
+}).msg, 
+"DeveloperMessage":"Java validation error"    
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Template Not Found" doc:id="e8947f51-3cb6-4356-a21c-6318519a7489" when='#[error.description == "Template URL is null"]'>
+			<logger level="INFO" doc:name="validation logger" doc:id="0617487b-a0bd-4928-9194-a02b763a872b" message="Message Id : #[correlationId] - Template Not Found" />
+			<set-variable value="400" doc:name="Set Status Code" doc:id="1dabff0e-4abe-4d78-884c-bff7a9f15c98" variableName="httpStatus" />
+			<ee:transform doc:name="Final Json Response" doc:id="40bc3db6-311a-4935-8868-8a01f4eb1ae6" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+"status": "Failure",
+"correlationId": correlationId,
+"errorCode": "DV0001",
+"errorCategroy": "Data Validation Error",
+"userMessage": [payload.errors[0].message], 
+"DeveloperMessage":"Template URL not found in SFDC"    
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Folder Already Exist" doc:id="51353915-41a3-4b2d-8d01-dafdf7ce7aaf" type="CUS_FOLDER:EXIST">
+			<logger level="INFO" doc:name=" Folder already exist logger" doc:id="3eaca04c-b36c-40b0-9d25-605380032f1d" message="Message Id : #[correlationId] || Inside Folder already exist in springCM" />
+			<set-variable value="400" doc:name="Set Status Code" doc:id="7c6787a0-8445-4d60-aec7-6efb50302ca7" variableName="httpStatus" />
+			<ee:transform doc:name="Final Json Response" doc:id="5da4bcbc-2bda-45ac-9e27-10616f322187" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+"status": "Failure",
+"correlationId": correlationId,
+"errorCode": "DV0001",
+"errorCategroy": "Data Validation Error",
+"userMessage": ["The provided combination of contract number and product type was already used. [contractNumber=" ++ vars.contractNumber ++ ",productType=" ++ vars.productType ++ "]"], 
+"DeveloperMessage":"SpringCM API Exception"    
+}
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Catch All" doc:id="d09583f8-567a-4cf7-a637-bb709eec5d6c" type="ANY">
+			<logger level="INFO" doc:name="Catch All logger" doc:id="9c9a5a96-d138-47b6-9e85-6b955b701e7f" message="#[message.id]  || In General Eception  Exception Stargey- ||   Exception  payload is #[payload] " />
+			<set-variable value="500" doc:name="Set Status Code" doc:id="2fac9f0d-f365-4053-a88d-2dd9155d0967" variableName="httpStatus" />
+			<ee:transform doc:name="Final JSON Response" doc:id="e3b8f1e4-379e-4754-ab83-3718e9052c90">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": "Failure",
+    "correlationId":correlationId,
+    "errorCode": "GB",
+    "errorCategroy": "Generic error",
+    "userMessage": 
+       p('exception.general.message'),
+    "DeveloperMessage": error.description
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="experience-forms-error-handler" doc:id="96370c3e-049b-4c0a-b7ae-b0477f43e2c8" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Template not found" doc:id="b64748ca-07e8-4fec-a934-cf7c0523bb63" when='#[error.description == "Template URL is null"]'>
+			<logger level="INFO" doc:name="Template not found logger" doc:id="0a3f15cb-fee1-4578-9295-de4169e6b17c" message="Message Id : #[correlationId] || Inside Template not found "/>
+			<set-variable value="400" doc:name="Set Status Code" doc:id="99b0a74c-e9da-44f5-95d9-db779ccba951" variableName="httpStatus"/>
+			<choice doc:name="IsJSONPayload" doc:id="51dbc7e3-107c-4689-af28-03d496f1344b" >
+				<when expression="#[vars.isPayloadTypeJSON == true]">
+					<ee:transform doc:name="Frame JSON Response" doc:id="be704c2d-04e8-48c4-a680-2271a0d326a1">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": "Failure",
+    "errors": [
+        {
+            "key": "error",
+            "message": "The " ++ (if(not isEmpty(vars.formNumber))vars.formNumber else "") ++ ".pdf form template could not be found."
+        }
+    ]
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				</when>
+				<otherwise >
+					<ee:transform doc:name="Frame XML Response" doc:id="f5147bd1-624e-4640-8684-2130eb6efc19" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                        errors:{ 
+             													 key : "error",
+       													     	 message: "The " ++ vars.formNumber ++ ".pdf form template could not be found." 
+                     											}
+												}
+										}
+									}
+				}
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</otherwise>
+			</choice>
+			<async doc:name="Async" doc:id="cd1ac53c-2404-4ea8-8aee-5bd0b5df7064" >
+				<flow-ref doc:name="experience-forms-error-handler_notification_flow" doc:id="3dd79215-d577-4619-bc88-7af3e81941bb" name="experience-forms-error-handler_notification_flow"/>
+			</async>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="JAVA Validation Error" doc:id="f8c5b017-d07a-4a49-b27b-f2aaceb99218" type="CUS_JAVA:ERROR">
+			<logger level="INFO" doc:name="JAVA error handler logger" doc:id="897cbe6c-1f3c-4c10-a3b7-35293aa2349e" message="Message Id : #[correlationId] || Inside JAVA Error handler"/>
+			<set-variable value="400" doc:name="Set Status Code" doc:id="b8a82f52-c835-4ae5-a0dc-3b9a6cf6d3ce" variableName="httpStatus"/>
+			<choice doc:name="IsJSONPayload" doc:id="b5c476f7-42f5-4f0d-b12c-3079ba6640d7" >
+				<when expression="#[vars.isPayloadTypeJSON == true]">
+					<ee:transform doc:name="Frame JSON Response" doc:id="58302e85-4060-4d47-8654-7558b0c99795">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				</when>
+				<otherwise >
+					<ee:transform doc:name="Frame XML Response" doc:id="623e912a-4241-4427-8aba-6fb0f6a77c9f" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</otherwise>
+			</choice>
+		</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="Folder Already Exist" doc:id="6d41f05d-ea97-4a47-9c86-6fa6041b39bd" type="CUS_FOLDER:EXIST">
+			<logger level="INFO" doc:name=" Folder already exist logger" doc:id="b7d942e5-bd50-49f9-bb58-778e6b04ce7a" message="Message Id : #[correlationId] || Inside Folder already exist in springCM"/>
+			<set-variable value="400" doc:name="Set Status Code" doc:id="cd1ef798-f26c-4b24-a08a-a3b2f2feb237" variableName="httpStatus"/>
+			<choice doc:name="IsJSONPayload" doc:id="8314f6e8-cedd-4a9c-b710-75f9ad426c07" >
+				<when expression="#[vars.isPayloadTypeJSON == true]">
+					<ee:transform doc:name="Frame JSON Response" doc:id="031cd1de-a4eb-426b-8659-0ee5c8e549b7">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	   status:"Failure",
+       errors:[{
+              key : p('exception.general.key'),
+			  message: "The provided combination of contract number and product type was already used. [contractNumber=" ++ vars.contractNumber ++ ",productType=" ++ vars.productType ++ "]" 
+        }]
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				</when>
+				<otherwise >
+					<ee:transform doc:name="Frame XML Response" doc:id="50ba44fd-e06c-4e5f-a0d5-40c6e68e784c" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                        errors:{ 
+             													 key : p('exception.general.key'),
+       													     	 message: "The provided combination of contract number and product type was already used. [contractNumber=" ++ vars.contractNumber ++ ",productType=" ++ vars.productType ++ "]"
+                     											}
+												}
+										}
+									}
+				}
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</otherwise>
+			</choice>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Connection Exception" doc:id="3ef699ed-548c-4b45-9fa0-4aa08ccec752" type="HTTP:CONNECTIVITY">
+			<logger level="DEBUG" doc:name="Any error handler logger" doc:id="3d99d0f7-ca3c-4692-a537-3567f68b5f1b" message="Message Id : #[correlationId] || Connection error handler" category="global.error.handler"/>
+			<set-variable value="500" doc:name="Set Status Code" doc:id="d0e0ad90-aedb-4359-bc5f-0018802414de" variableName="httpStatus"/>
+			<choice doc:name="IsJSONPayload" doc:id="2c5a73be-612a-4491-a495-b4760e8da60a" >
+				<when expression="#[vars.isPayloadTypeJSON == true]">
+					<ee:transform doc:name="Frame JSON Response" doc:id="002b6c81-0aaf-49c5-b646-0aabb5b65e6c" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	   status:"Failure",
+       errors:[{
+              key : p('exception.connection.key'),
+			  message: p('exception.connection.message') 
+        }]
+                     
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</when>
+				<otherwise >
+					<ee:transform doc:name="Frame XML Response" doc:id="b95ac29c-3528-4a06-ad99-3deba96ed009" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                        errors:{ 
+             													 key : p('exception.connection.key'),
+       													     	 message: p('exception.connection.message') 
+                     											}
+												}
+										}
+									}
+				}
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</otherwise>
+			</choice>
+			<async doc:name="Async" doc:id="91837c26-d154-4f06-a4b2-14b628216e87" >
+				<flow-ref doc:name="experience-forms-error-handler_notification_flow" doc:id="d0f11ed7-35ab-4e8c-bc09-225260cb8ca6" name="experience-forms-error-handler_notification_flow"/>
+			</async>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="General Exception" doc:id="b242ca23-07ce-472c-b500-7cd152631efd" type="ANY">
+			<logger level="DEBUG" doc:name="Any error handler logger" doc:id="6fa3dae6-6541-4919-8625-91c9d9cc7123" message="Message Id : #[correlationId] || Any error handler" category="global.error.handler"/>
+			<set-variable value="500" doc:name="Set Status Code" doc:id="ac2e4b25-4ce4-41da-ad21-bd3c02436b4b" variableName="httpStatus"/>
+			<choice doc:name="IsJSONPayload" doc:id="bd382d12-202c-47a2-a6fc-5ecc9108be36" >
+				<when expression="#[vars.isPayloadTypeJSON == true]">
+					<ee:transform doc:name="Frame JSON Response" doc:id="36c50768-6858-42a9-ae5b-d45b1f18ca21" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	   status:"Failure",
+       errors:[{
+              key : p('exception.general.key'),
+			  message: p('exception.general.message') 
+        }]
+                     
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</when>
+				<otherwise >
+					<ee:transform doc:name="Frame XML Response" doc:id="1c0ad96d-f1ee-41f6-9825-015e07accf84" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://webservice.forms.twg.com/ 
+---
+soap#Envelope:{
+       soap#Body:{
+              ns2#getFormResponse:{
+                                  return:{
+                                         status:{
+                                                error: "true",
+                                                        errors:{ 
+             													 key : p('exception.general.key'),
+       													     	 message: p('exception.general.message')
+                     											}
+												}
+										}
+									}
+				}
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</otherwise>
+			</choice>
+			<async doc:name="Async" doc:id="877e27b1-aa6a-436f-9a68-f1f545838789" >
+				<flow-ref doc:name="experience-forms-error-handler_notification_flow" doc:id="7db43431-04eb-4efd-a8b8-317a62acf8cd" name="experience-forms-error-handler_notification_flow"/>
+			</async>
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="service-forms-get-contractDoc-global-error-handler" doc:id="c91e0aa1-aafd-4826-94b7-bbc719811cfb" >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="Data Validation Error" doc:id="153ea997-dacc-40f0-823a-cfbcb2a7c81e" type="VALIDATION:INVALID_BOOLEAN">
+			<logger level="INFO" doc:name="Data Validation Error Logger" doc:id="ace4912b-4b39-4b45-ac56-cbb04ea9b539" message='Message Id : #[correlationId] || Abstract Forms Data Validation Error Handler || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' />
+			<ee:transform doc:name="Frame  Error Response" doc:id="afc06bd1-0ecd-4296-85c6-5d1baa46d4f5" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ 
+"status": 'Rejected', 
+"correlationId":correlationId, 
+"errorCode": 'DV0001', 
+"errorCategory":'Data Validation Error',
+"userMessages": if(! isEmpty(error.description)) [error.description] else ['Error Occured while processing the documentID'],
+"DeveloperMessage": if(! isEmpty(error.description)) [error.description] else ['Error Occured while processing the documentID']
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="ANY" doc:id="8766e071-36b4-47de-a08b-c18ae8ece7e3" type="ANY">
+			<logger level="INFO" doc:name="User Validation Logger" doc:id="570837e4-d9c3-43be-a8b4-156a043e55a4" message='Message Id : #[correlationId] || User Validation Failed: Unauthorized User ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' />
+			<ee:transform doc:name="Frame  Error Response" doc:id="e33bea6d-0678-4a02-9eee-34326cd84b5e" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ 
+"status": 'Rejected', 
+"correlationId":correlationId, 
+"errorCode": 'GE0001', 
+"errorCategory":'System Exception',
+"userMessages": if(! isEmpty(error.description)) [error.description] else ['Error Occured while processing the documentID'], 
+"DeveloperMessage": if(! isEmpty(error.description)) [error.description] else ['Error Occured while processing the documentID']
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+	
+</error-handler>
+
+<sub-flow name="experience-forms-error-handler_notification_flow" doc:id="97572047-4bd2-4b40-85eb-c4915e4facb2" >
+		<ee:transform doc:name="isFolderAvailable?" doc:id="0134c4e7-e7ee-4379-bd5a-7ce46c039c02" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="isFolderAvailable" ><![CDATA[%dw 2.0
+output application/java
+---
+if ((not isEmpty(error.description)) and (error.description contains "Folder Already Exist")) true else false default false]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="289dc04c-fe49-4e6b-a7c6-b4f366c172c5" >
+			<when expression='#[vars.isFolderAvailable]'>
+				<logger level="INFO" doc:name="Logger" doc:id="6e18c00d-672d-423b-bf93-56635e1aa22a" message="Folder Already Exist"/>
+			</when>
+			<when expression="#[vars.isPayloadTypeJSON == true]">
+				<ee:transform doc:name="Transform Message" doc:id="5f4b1b55-e397-4ad1-9640-9739c8676973">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+	
+	"contractNumber" : if(not isEmpty(vars.contractNumber)) vars.contractNumber else null,
+	"QuoteId" : if(not isEmpty(vars.quoteId)) vars.quoteId else null,
+	 messageId : correlationId
+} ++ payload ]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<cloudhub:create-notification domain="${cloudhub.alert.domain}" doc:name="Create Notification" doc:id="e7ee2938-4b35-4754-8ce8-ca3c55c87fdc" config-ref="CloudHub_Config">
+					<cloudhub:message ><![CDATA[#[%dw 2.0
+output application/json
+---
+"Documents API Error : " ++ write(payload,'application/json') ++ " || \n Exception : " ++ error.description]]]></cloudhub:message>
+				</cloudhub:create-notification>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="9103f117-98dd-4517-b320-832448d1f38a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	 
+	"contractNumber" : if(not isEmpty(vars.contractNumber)) vars.contractNumber else null,
+	"QuoteId" : if(not isEmpty(vars.quoteId)) vars.quoteId else null,
+	 "messageId" : correlationId,
+	  status:"Failure",
+       errors:[{
+              key : payload.Envelope.Body.getFormResponse.return.status.errors.key ,
+			  message: payload.Envelope.Body.getFormResponse.return.status.errors.message
+        }]
+                     
+
+	 
+	 
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<cloudhub:create-notification doc:name="Create Notification" doc:id="faca65e7-d9ec-4db2-acdc-ceaaa4a53708" config-ref="CloudHub_Config" domain="${cloudhub.alert.domain}">
+					<cloudhub:message ><![CDATA[#[%dw 2.0
+output application/json
+---
+"Documents API Error : " ++ write(payload,'application/json') ++ " || \n Exception : " ++ error.description]]]></cloudhub:message>
+				</cloudhub:create-notification>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

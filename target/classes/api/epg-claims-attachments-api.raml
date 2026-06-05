@@ -1,0 +1,65 @@
+#%RAML 1.0
+title: EPG Claims Attachments API
+version: v1
+baseUri: http://qa.api.assurant.com/api/
+mediaType: application/json
+
+types:
+  epgClaimsAttachmentsResponse: !include /types/epgClaimAttachmentsResponse.raml
+  epgClaimsAttachmentsError: !include /types/epgClaimAttachmentsErrors.raml
+    
+securitySchemes:
+  basic:
+    description: |
+      This API supports Basic Authentication.
+    type: Basic Authentication
+   
+/auto/epg/claims/{claimNumber}/documents:
+    description: |
+      Claims attachments submission process for source-originator-defined client calls.
+      Each call requires the claim number, location and unique doc/attachment name for successfull doc transfer.
+    uriParameters:
+      claimNumber:
+        type: string
+        example: '2323234'
+        description: Claim number reference to which sent attachments need to be tight to.
+        required: true
+        
+    securedBy: [basic]          
+    post:
+      queryParameters:
+          sourceOriginator:
+            type: string
+            description: Client specific source originator value.
+            required: true
+          attachmentName:
+            type: string
+            description: Sent attachment unique filename for Claims Submission processing.
+            required: true   
+          targetLocation:
+            type: string
+            description: Target SFTP GS location for file move.
+            required: true 
+
+      displayName: post
+      description: | 
+          Upload newly created claims related documents/attachments to the internal fileshare location.
+          Replace the existing document(s) with newly sent in in case of corrections/errors required
+          (clean up existing file(s) (if in) and add new ones from the latest call for claim) or
+          attach the new documents/attachments in the already existing folders.
+      body:
+        multipart/form-data:
+      
+      responses:
+        200:
+          description: Acknowledgement response for the received documents/attachments files.
+          body:
+            application/json:
+              type: epgClaimsAttachmentsResponse
+              example: !include /examples/epg_claims_attachments_api/epgClaimAttachmentsResponse.raml               
+        500:
+          description: Acknowledgment failure/ error response for the input request.
+          body:
+            application/json:
+              type: epgClaimsAttachmentsError
+              example: !include /examples/epg_claims_attachments_api/epgClaimAttachmentsErrors.raml       

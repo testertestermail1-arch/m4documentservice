@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+
+	<ee:object-store-caching-strategy name="Caching_Strategy_AzureVault" doc:name="Caching Strategy" doc:id="5c46a5c2-8094-4a14-a64a-83452e82b08e" />
+	<http:request-config name="Docusign_Request_Configuration" doc:name="HTTP Request configuration" doc:id="a37f8b8b-93a6-4462-9ad7-c576929bd617" >
+		<http:request-connection protocol="HTTPS" host="${docusign.authentication.host}" port="${docusign.authentication.port}"/>
+	</http:request-config>
+	<os:object-store name="Private_Key_Object_Store" doc:name="Object store" doc:id="3013b34d-94c9-468d-a680-146e2cb41d53" maxEntries="1" entryTtl="${privatekey.object.store.entry.ttl}" expirationInterval="${privatekey.object.store.expiration.interval}" config-ref="ObjectStore_Config"/>
+	<ee:object-store-caching-strategy name="Caching_Private_key_object_store_Strategy" doc:name="Caching Strategy" doc:id="9109c4e6-4aa8-4b75-ab64-519d9199bc43" objectStore="Private_Key_Object_Store" />
+	<sub-flow name="system-springCm-authetication-Flow" doc:id="92e2fbc6-92fd-4b83-a616-c3d729bb70c8" >
+		<logger level="INFO" doc:name="Before Authentication Call Logger" doc:id="68b54a53-196d-4545-8dd8-d465b36f6e67" message="MessageId: #[correlationId] || Before Authentication Call"/>
+		<http:request method="POST" doc:name="HTTP_Request_SpringCM_Authentication" doc:id="b55579e5-2128-4742-b2db-fb7ce2732c29" config-ref="HTTP_Request_SpringCM_Authentication" path="${springcm.authentication.api.implementation.path}">
+			<http:body ><![CDATA[#[%dw 2.0
+output application/json
+---
+{   
+    "client_id": p('springcm.authentication.api.client_id'),   
+    "client_secret": p('springcm.authentication.api.client_secret') 
+}]]]></http:body>
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name=" After Authentication Call Logger" doc:id="993c8b0e-4ea4-4923-bd99-6ccd702a92c9" message="MessageId: #[correlationId] || After Authentication Call"/>
+	</sub-flow>
+	<sub-flow name="system-docusign-Authentication-flow" doc:id="fe674523-7d7e-491c-a5bf-0c2d62dd8957" >
+		<os:contains doc:name="Contains" doc:id="6a400474-f11d-4f3d-9c9d-d9d2920efb5e" objectStore="Private_Key_Object_Store" key="private_key"/>
+		<choice doc:name="Is private Key Available?" doc:id="bc83e96b-b9c6-4cae-8cc7-51c44b446e03" >
+			<when expression="#[payload == true]">
+				<ee:cache doc:name="Cache Private Key" doc:id="c1b8417f-9a9d-4f4f-b924-aee52ab096b8" cachingStrategy-ref="Caching_Private_key_object_store_Strategy">
+					<os:retrieve doc:name="Retrieve Private Key" doc:id="a32b53b0-7347-432d-8430-7a7eb7e2d4dd" key="private_key" objectStore="Private_Key_Object_Store"/>
+				</ee:cache>
+				<set-variable value="#[payload]" doc:name="Set key Variable" doc:id="5484289e-b648-4317-b8a1-3b4282701696" variableName="key"/>
+				<logger level="INFO" doc:name="Cache Logger" doc:id="92129d07-c7f6-4759-afc4-4440c4776e6d" message="Inside Retrive Cache flow : #[vars.key]" />
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Calling system-retrive-from-KeyVault" doc:id="fe3d65ca-e478-49cf-ae1b-606cbbd0bc54" name="system-retrive-from-KeyVault" target="key" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Read PrivateKey" doc:id="0b222a77-230b-48ba-9943-72f0a5b408f3" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="privateKey" ><![CDATA[%dw 2.0
+output application/json
+---
+if (not isEmpty(vars.key)) vars.key.value else ""]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Read Private key Logger" doc:id="b65f1284-e195-4388-8b21-79de8855917e" message="Read Private key : #[vars.privateKey]"/>
+		<ee:transform doc:name="Generate JWT Token" doc:id="84a4e2ba-4606-4d2a-8aae-cbba44f7e943" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="assertion" ><![CDATA[%dw 2.0
+import * from jwt::RSA
+output application/java
+---
+JWT(
+		{
+			"alg": "RS256",
+			"typ": "JWT"
+		},
+		{
+			"iss": p('docusign.integrationKey'),
+			"sub": p('docusign.integrationUserId'),
+			"aud": p('docusign.authentication.host'),
+			"iat": (now()) as Number { unit: 'seconds' },
+			"exp": (now() + |P1D|) as Number { unit: 'seconds' },
+			"scope" : "spring_read spring_write"
+		},
+		vars.privateKey as String,
+		'Sha256withRSA'
+    )]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Set Authentication Payload" doc:id="596f14a2-0f44-4fec-b04d-d4bc4f681830" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output multipart/form-data
+---
+{
+  parts: {
+    grant_type: {
+      headers: {
+        "Content-Disposition": "form-data; name=\"grant_type\""
+      },
+      content:  p('docusign.authentication.grant_type')
+    },
+    assertion: {
+      headers: {
+        "Content-Disposition": "form-data; name=\"assertion\""
+      },
+      content: vars.assertion
+    }
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Docusign_Authentication_Req" doc:id="b8011a4b-f042-4ae5-97cd-27f3179dc79a" config-ref="Docusign_Request_Configuration" path="${docusign.authentication.path}"/>
+		<logger level="INFO" doc:name="After Authentication Call" doc:id="c27740b2-77a8-426e-bade-d0bf03e4f3ce" message="MessageId: #[correlationId] || After Authentication Call"/>
+	</sub-flow>
+	<sub-flow name="system-retrive-from-KeyVault" doc:id="b4d93c00-b8b5-4082-9ad9-9aa21cb7d0ae" >
+		<try doc:name="Try" doc:id="c0968b68-da70-44c5-bc43-33c57eb42a30" >
+			<azure-key-vault:get-secret doc:name="Get Secret" doc:id="69b45ad1-a121-4d77-b681-570146c94e15" config-ref="Azure_Key_Vault_Config" name="${azure.keyvault.secret.docusign.pkey.name}" />
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="19c83519-5e2a-4ab9-968d-7f46cdea8319" type="AZURE-KEY-VAULT:CONNECTIVITY, AZURE-KEY-VAULT:INVALID_CREDENTIALS, AZURE-KEY-VAULT:RESOURCE_NOT_FOUND, AZURE-KEY-VAULT:RETRY_EXHAUSTED">
+					<logger level="INFO" doc:name="Logger" doc:id="87b7193f-9605-4acc-a0bf-5d136546f4cb" message="Error Retrieving Private Key from Azure Key Vault"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<os:store doc:name="Store Private Key" doc:id="cc6e8d27-1872-410c-a460-bd776bf52a51" key="private_key" objectStore="Private_Key_Object_Store"/>
+		<logger level="INFO" doc:name="Store Private Logger" doc:id="2fb3daec-24ab-4656-80ed-724a5304a9d2" message="Store Private Key Logger: #[payload]"/>
+	</sub-flow>
+	<sub-flow name="system-springCM-get-monthly-folderId-flow" doc:id="5d86451d-9f2e-49e4-9f38-4bc8d6245a75" >
+		<ee:transform doc:name="Set Vars" doc:id="3a330a93-41ea-4921-bc32-bc5c224d7835">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="parentUrlFilter"><![CDATA[%dw 2.0
+output application/java
+---
+vars.parentFolderURL]]></ee:set-variable>
+				<ee:set-variable variableName="folderName" ><![CDATA[%dw 2.0
+output application/java
+---
+"\"" ++ vars.folderMonthVar ++ "\""]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Call system-springCm-apiFlow-fetch-folderId-routing-flow" doc:id="ee82f046-c6ff-4285-9ccf-c890437d2a66" name="system-springCm-apiFlow-fetch-folderId-routing-flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="04a5b421-5e80-4d3f-9806-1c666e004bfe" message="Monthly folder Response : #[payload]"/>
+		<ee:transform doc:name="Set monFolderUrl" doc:id="f4554e44-290b-4648-aae4-8ca9c3eda110">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	browserUrl: (payload.Items filter (($.Name == vars.folderMonthVar) and (($.ParentFolder.Href) == vars.parentUrlFilter)) map ($.BrowseDocumentsUrl))[0]
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="monFolderUrl"><![CDATA[%dw 2.0
+output application/java
+---
+(payload.Items filter (($.Name == vars.folderMonthVar) and (($.ParentFolder.Href) == vars.parentUrlFilter)) map ($.BrowseDocumentsUrl))[0]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="system-springCM-get-hardCopy-folderId-flow" doc:id="f1e598c1-9063-4005-a4eb-7adef4b914e4" >
+		<ee:transform doc:name="Set folderName" doc:id="9a3ba132-05d5-4e19-9f5a-7c076d18f3dd">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="folderName"><![CDATA[%dw 2.0
+output application/java
+---
+vars.hardCopyLocation]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Call system-springCm-apiFlow-fetch-folderId-routing-flow" doc:id="9d0905cb-cb59-4aed-93f7-8c4a2eb552d0" name="system-springCm-apiFlow-fetch-folderId-routing-flow"/>
+		<ee:transform doc:name="Set hardCopyLocationUrl" doc:id="69027ae6-95e8-45ac-8dfc-3dcf1e8431b8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	browserUrl: (payload.Items filter (($.Name == vars.hardCopyLocation) and ( $.ParentFolder.Href  == vars.parentUrlFilter)) map ($.BrowseDocumentsUrl))[0]
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="hardCopyLocationUrl" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.Items filter (($.Name == vars.hardCopyLocation) and ( $.ParentFolder.Href  == vars.parentUrlFilter)) map ($.BrowseDocumentsUrl))[0]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="system-springCM-fetch-folderId-flow" doc:id="cd557cba-748f-4a51-a2ba-0ee8d5f2a75e" >
+		<logger level="INFO" doc:name="Before Fetch FolderId Logger" doc:id="7e8f96ea-c5cc-4f10-8545-346b93c6e947" message='Message Id : #[correlationId] || Before SpringCM Fetch Folder Id|| Folder Name-  #[vars.folderName] || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+		<http:request doc:name="Get Folder ID springCM Call" doc:id="926ed8f1-dde5-4061-9d10-5c48f7c0016e" config-ref="SpringCM_Request_configuration" path="${document.folder.upload.api.implementation.path}" method="GET">
+			<http:headers ><![CDATA[#[{
+	Authorization : vars.varTokenAcessKey
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[{
+	search : vars.folderName
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="After Fetch FolderId Logger" doc:id="e0641372-5a01-47d7-bfe6-fb612fc04d9d" message='Message Id : #[correlationId] || After SpringCM Fetch Folder Id #[payload]|| #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+	</sub-flow>
+	<sub-flow name="system-springCm-apiFlow-fetch-folderId-routing-flow" doc:id="e8bd9aa2-f1c0-4f97-830b-e8a418473734" >
+		<choice doc:name="Checking docusign or not?" doc:id="85528413-f89a-4c20-9a2f-a36e972c70e3" >
+			<when expression="#[p('document.authentication.source') == 'docusign']">
+				<flow-ref doc:name="Calling system-springCM-fetch-folderId-docusign-flow" doc:id="6d65b1ce-b5a5-44c4-980e-451bd7da5384" name="system-springCM-fetch-folderId-docusign-flow"/>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Calling system-springCM-fetch-folderId-flow" doc:id="adcbdde3-006d-474d-8c81-e011b9a5141d" name="system-springCM-fetch-folderId-flow"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="system-springCM-fetch-folderId-docusign-flow" doc:id="462aea10-8970-4d8a-ba39-e7acadd844cd" >
+		<logger level="INFO" doc:name="Before Fetch FolderId Logger" doc:id="05609511-1109-4f6c-af21-9237a3a4bdc0" message='Message Id : #[correlationId] || Before SpringCM Fetch Folder Id|| Folder Name-  #[vars.folderName] || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+		<http:request doc:name="Get Folder ID springCM Call" doc:id="af620aa2-ede3-4856-b9aa-1e8ea8562285" config-ref="SpringCM_Request_configuration" path="${document.folder.upload.api.implementation.path}" method="POST">
+			<http:headers ><![CDATA[#[{
+	Authorization : vars.varTokenAcessKey
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[{
+	search : vars.folderName
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="After Fetch FolderId Logger" doc:id="988bbfec-ca9a-4cc3-90ea-a1a6d7f909c7" message='Message Id : #[correlationId] || After SpringCM Fetch Folder Id #[payload]|| #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+	</sub-flow>
+	<sub-flow name="system-springCM-download-template-flow" doc:id="c25477b6-e056-40ec-a9f5-cdd69706797b" >
+		<logger level="INFO" doc:name="Before SpringCM Download Document " doc:id="c3d793c2-476b-4b05-8fdc-c4c0b9b218ff" message='Message Id : #[correlationId] || Before After SpringCM Download Document || formapiID: #[vars.formapiID] || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }] || #[vars.authTokenVar.access_token]'/>
+		<until-successful maxRetries="${springcm.document.download.retry.count}" doc:name="Until Successful" doc:id="fd9a94ed-d34c-4805-b3cd-d9b0391b8ba4" millisBetweenRetries="${springcm.document.download.retry.milliseconds}">
+			<http:request method="GET" doc:name="Get Document Template SpringCM Call" doc:id="7b28f1d7-5cd9-4cae-a4dd-225661481b99" config-ref="SpringCM_download_Request_configuration" path="#[p('document.download.api.implementation.path') ++ '/' ++ vars.SpringCMTemplateID]">
+			<http:headers><![CDATA[#[{
+	Authorization: 'bearer ' ++ vars.authTokenVar.access_token,
+	Accept: 'application/pdf',
+	Host: p('document.download.api.implementation.host'),
+	connection: 'keep-alive'
+}]]]></http:headers>
+		</http:request>
+		</until-successful>
+		<ee:transform doc:name="To Base 64 Enocder" doc:id="d1f1cdc2-02a4-4676-b1c0-e78d463ef18e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output text/plain
+---
+toBase64(payload as Binary)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Frame PDF Response" doc:id="13286e40-4c61-4835-b9e6-3500fa59de63" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	pdfResponse: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="After SpringCM Download Document " doc:id="bb313ce7-8bc2-4e28-b512-e0a7b4e48a8d" message='Message Id : #[correlationId] || After SpringCM Download Document || formapiID: #[vars.formapiID]  || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+</sub-flow>
+	<sub-flow name="system-springCm-api-create-monthly-folder-Flow" doc:id="8fe2460f-db5d-4ec0-8997-43282c7f5b6d" >
+		<logger level="INFO" doc:name="Before Create Monthly Folder Logger" doc:id="5a08c34b-bdad-442d-b1c8-3214ab178150" message='Message Id : #[correlationId] || Before Create Monthly Folder Logger || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+		<http:request method="POST" doc:name="Create Monthly Folder" doc:id="9b952f65-7e55-46cc-87a4-b7b2b6d04a24" config-ref="SpringCM_Request_configuration" path="${document.folder.create.api.implementation.path}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : vars.varTokenAcessKey,
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+				<http:response-validator>
+					<http:success-status-code-validator values="422,200,201" />
+				</http:response-validator>
+		</http:request>
+		<logger level="INFO" doc:name="After Create Monthly Folder Logger" doc:id="8dba325a-bf84-434d-b349-217be15d1ec0" message='Message Id : #[correlationId] || After Create Monthly Folder Logger #[payload]  || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]'/>
+
+	</sub-flow>
+	<sub-flow name="system-springCM-upload-document-flow" doc:id="017f895f-b2d5-4d24-9e91-a56b16c67fca" >
+		<logger level="INFO" doc:name=" Before SpringCM Upload Document" doc:id="3fdf1c0a-4e04-42ea-a4cf-c01a2bdd5300" message='Message Id : #[correlationId] || Before SpringCM Upload Document || formapiID: #[vars.formapiID] || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' />
+		<until-successful maxRetries="${springcm.api.until.successful.max.retry}" doc:name="Until Successful" doc:id="79e4bf11-56d7-483c-b085-212033082081" millisBetweenRetries="${springcm.api.until.successful.retry.interval}" >
+			<http:request method="POST" doc:name="Upload Document SpringCM Call" doc:id="4f60ff17-3152-45fc-9857-41b260f35179" config-ref="SpringCM_Upload_Request_configuration" path="#[p('document.upload.api.implementation.path') replace &quot;[folderId]&quot; with vars.testFileName]" >
+				<http:headers ><![CDATA[#[{
+	Authorization : 'bearer ' ++ vars.tokenData.access_token,
+	'Content-Type' :'multipart/form-data'
+}]]]></http:headers>
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	name : vars.fileName
+}]]]></http:query-params>
+				<http:response-validator >
+					<http:success-status-code-validator values="0..999" />
+				</http:response-validator>
+			</http:request>
+		</until-successful>
+		<ee:transform doc:name="Frame Upload Document SpringCM Response" doc:id="378c71f5-aa9a-478f-b473-f0f761b5a25f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="After SpringCM Upload Document" doc:id="c6b7e93f-331c-4939-a0fa-d3eec2757580" message='Message Id : #[correlationId] || After SpringCM Upload Document || formapiID: #[vars.formapiID]  || #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' />
+	</sub-flow>
+</mule>
