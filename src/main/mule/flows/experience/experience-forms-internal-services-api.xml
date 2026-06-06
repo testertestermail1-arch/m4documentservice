@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+	<flow name="forms-internal-services-api-main">
+		<http:listener config-ref="httpsListenerConfig" path="${api.forms.internal.services.name.path}">
+			<http:response statusCode="#[vars.httpStatus default 200]">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+    'Content-Disposition' : vars."Content-Disposition",
+    'Content-Type' : vars."Content-Type" default "application/json"
+}]]]></http:headers>
+			</http:response>
+			<http:error-response statusCode="#[vars.httpStatus default 500]">
+				<http:body><![CDATA[#[payload]]]></http:body>
+				<http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<apikit:router config-ref="forms-internal-services-api-config"/>
+		<error-handler>
+			<on-error-propagate type="APIKIT:BAD_REQUEST">
+				<ee:transform doc:name="Transform Message">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">400</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:NOT_FOUND">
+				<ee:transform doc:name="Transform Message">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">404</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+				<ee:transform doc:name="Transform Message">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">405</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+				<ee:transform doc:name="Transform Message">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">406</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+				<ee:transform doc:name="Transform Message">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">415</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+				<ee:transform doc:name="Transform Message">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">501</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="forms-internal-services-api-console">
+		<http:listener config-ref="httpListenerConfig" path="/forms-internal-services-console/*">
+			<http:response statusCode="#[vars.httpStatus default 200]">
+				<http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+			</http:response>
+			<http:error-response statusCode="#[vars.httpStatus default 500]">
+				<http:body><![CDATA[#[payload]]]></http:body>
+				<http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<apikit:console config-ref="forms-internal-services-api-config"/>
+		<error-handler>
+			<on-error-propagate type="APIKIT:NOT_FOUND">
+				<ee:transform doc:name="Transform Message">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">404</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="post:\forms:forms-internal-services-api-config">
+		<logger level="INFO" doc:name="Initial Logger" doc:id="1940fc5f-03fc-4574-bc9e-06d0d3bb6e80" message="#[%dw 2.0&#10;output application/java&#10;---&#10;correlationId ++ &quot;: Forms API Input Payload: \n&quot; ++ write(payload, 'application/json',{&quot;indent&quot;:false})]"/>
+		<flow-ref doc:name="Call process-generate-forms-rest-api-Flow" doc:id="ce765cb5-e042-4662-a1fb-aa50547062bd" name="process-generate-forms-rest-api-Flow"/>
+		<logger level="INFO" doc:name="Final Logger" doc:id="222ea9b9-da35-4f3d-b8f9-e664e98a99ed" message="MessageId: #[correlationId] -  Forms API Ended"/>
+		<error-handler ref="experience-forms-error-handler"/>
+	</flow>
+    <flow name="post:\qcert-forms:application\json:forms-internal-api-config">
+        <logger level="INFO" message=' Message Id : #[correlationId] || Request Received for Printing Stickers #[payload] ||  #[now() as String {format:"yyyy.MM.dd HH:mm:ss.SSS" }]' doc:name="Initial Logger"/>
+        <flow-ref doc:name="Call process-qcert-forms-api-flow" doc:id="b854586e-180a-4cc3-a732-e53499029a90" name="process-qcert-forms-api-flow"/>
+		<logger level="INFO" message="MessageId: #[correlationId] - Qcert Forms API Ended" doc:name="Final Logger"/>
+    </flow>
+    <flow name="post:\service\forms:forms-internal-api-config" doc:id="ba0112b5-4d45-442a-bc0a-8015f0acd118">
+		<logger doc:name="Initial Logger" message="MessageId: #[correlationId] - Forms API Starts" doc:id="e7205b9d-9b41-46c8-96e0-14189419a293" level="INFO"/>
+		<flow-ref name="process-service-forms-api-Flow" doc:name="Call process-service-forms-api-Flow" doc:id="b7216d20-f3fe-4072-8a43-6f49da95c23c"/>
+		<logger doc:name="Final Logger" message="MessageId: #[correlationId] - Forms API Ended" doc:id="aeff0a28-3e94-44c6-a494-3220fc9714c4" level="INFO"/>
+		<error-handler ref="global-config-for-experience-service-forms-api"/>
+	</flow>
+	
+	<flow name="get:\springcm\healthcheck:forms-internal-api-config">
+        <logger level="INFO" doc:name="Initial Logger" doc:id="4800c506-f11a-4dca-a3d6-077c45d9e30f" message="MessageId: #[correlationId] - SpringCM Health Check Starts"/>
+		<ee:transform doc:name="Transform Message" doc:id="54b29a7d-0e55-4250-92fe-a97b0cfa1d24" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="contractNumber" ><![CDATA[%dw 2.0
+output application/java
+---
+""]]></ee:set-variable>
+				<ee:set-variable variableName="hardCopyLocation" ><![CDATA[%dw 2.0
+output application/java
+---
+"PrintShop"]]></ee:set-variable>
+				<ee:set-variable variableName="isPayloadTypeJSON" ><![CDATA[%dw 2.0
+output application/java
+---
+true]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<try doc:name="Try springcm auth token" doc:id="ac150cc8-e572-40f8-ab48-4fe40e4e2e84" >
+			<flow-ref doc:name="process-springCm-authetication-api-Flow" doc:id="4259734c-7f59-4c79-bc5c-a985c72d4aed" name="process-springCm-authetication-api-Flow" />
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="a93aae49-9726-46f0-a36d-7e80c4636ded" >
+					<ee:transform doc:name="payload" doc:id="4567baa2-813b-4057-b712-eaab10c917b4" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status : "failure",
+	errorMessage : error.detailedDescription default ""
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<set-variable value='#["bearer " ++ vars.authTokenVar.access_token]' doc:name="varTokenAcessKey" doc:id="2de8b365-980c-4e30-b130-3f3c34618e0c" variableName="varTokenAcessKey"/>
+		<try doc:name="Try get folder sprimgcm call" doc:id="5a4529bf-c93e-4a98-931c-aa9ce72d54dc" >
+			<flow-ref doc:name="system-springCM-get-hardCopy-folderId-flow" doc:id="c74f574a-c6e5-4a3e-83ff-e932d2aab90c" name="system-springCM-get-hardCopy-folderId-flow" />
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="1ca0ce2f-2444-4637-9da5-bd470960ff60" type="ANY">
+					<ee:transform doc:name="payload" doc:id="b78195b6-d0c0-4184-8a96-44653031e882" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status : "failure",
+	errorMessage : error.detailedDescription default ""
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<ee:transform doc:name="response message" doc:id="36e4ba46-3184-4674-a9b5-508de6650bcb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(attributes.statusCode == 200) {
+	status : "Success",
+	message : "request process successfully"
+}
+else {
+	status : "Failure",
+	message : "request failed : " ++ (payload.errorMessage default ""),
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Final Logger" doc:id="6c1e34cb-785c-4b61-8428-709a5b6dbbaf" message="MessageId: #[correlationId] - SpringCM Health Check  Ended"/>
+		<error-handler ref="global-config-for-experience-service-forms-api"/>
+    </flow>
+    <flow name="get:\invalidateCache:forms-internal-service-api-config">
+        <logger level="INFO" doc:name="Initial Logger" doc:id="2c69ace2-0e83-4843-b501-b2a797170afd" message="MessageId: #[correlationId] - Validate cache flow Starts"/>
+		<flow-ref doc:name="Calling process-invalidate-cache-apiFlow" doc:id="46d76d38-264f-4003-897b-6f2b42d827ba" name="process-invalidate-cache-apiFlow"/>
+		<logger level="INFO" doc:name="Final Logger" doc:id="afb7a484-861f-4642-af12-32621b83ec6d" message="MessageId: #[correlationId] - Validate cache flow ends"/>
+    </flow>  
+</mule>
